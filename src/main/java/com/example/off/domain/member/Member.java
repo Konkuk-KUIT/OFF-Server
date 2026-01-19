@@ -1,5 +1,6 @@
 package com.example.off.domain.member;
 
+import com.example.off.domain.projectMember.ProjectMember;
 import com.example.off.domain.role.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -52,5 +53,8 @@ public class Member {
     @CollectionTable(name = "member_roles", joinColumns = @JoinColumn(name = "member_id"))
     @Enumerated(EnumType.STRING)
     private Set<Role> roles = new HashSet<>();
+
+    @OneToMany(mappedBy = "member")
+    private List<ProjectMember> projectMembers = new ArrayList<>();
 
 }

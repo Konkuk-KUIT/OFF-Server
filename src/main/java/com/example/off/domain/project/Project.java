@@ -1,10 +1,13 @@
 package com.example.off.domain.project;
 
+import com.example.off.domain.projectMember.ProjectMember;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -36,4 +39,7 @@ public class Project {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProjectType projectType;
+
+    @OneToMany(mappedBy = "prioect")
+    private List<ProjectMember> projectMembers = new ArrayList<>();
 }
