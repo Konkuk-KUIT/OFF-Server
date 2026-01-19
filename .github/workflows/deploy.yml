@@ -81,7 +81,10 @@ jobs:
           script: |
             cd /home/ubuntu/app
             pkill -f app.jar || true
-            nohup java -jar app.jar > app.log 2>&1 &
+
+          # 완전 세션 분리
+            setsid nohup java -jar app.jar > app.log 2>&1 < /dev/null &
+
             sleep 2
             pgrep -fl app.jar || true
             exit 0
