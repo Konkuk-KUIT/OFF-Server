@@ -32,8 +32,9 @@ jobs:
       # JAR 이름 고정
       - name: Prepare JAR
         run: |
-          JAR=$(ls build/libs/*.jar | head -n 1)
+          JAR=$(ls build/libs/*.jar | grep -v plain | head -n 1)
           cp "$JAR" app.jar
+
 
       # 기존 디렉토리/파일 전부 제거
       - name: Remove old app on EC2
@@ -77,16 +78,17 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          script_stop: true
+          script_stop: false
+          request_pty: false
           script: |
             cd /home/ubuntu/app
             pkill -f app.jar || true
 
-            setsid nohup java -jar app.jar > app.log 2>&1 </dev/null &
+            nohup java -jar app.jar > app.log 2>&1 &
 
             sleep 2
             pgrep -fl app.jar || true
-            exit 0
+
 
 #  ci:
 #    name: CI (Build & Test)
