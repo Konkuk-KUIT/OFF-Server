@@ -82,12 +82,12 @@ jobs:
             cd /home/ubuntu/app
             pkill -f app.jar || true
 
-          # 완전 세션 분리
-            setsid nohup java -jar app.jar > app.log 2>&1 < /dev/null &
+            setsid nohup java -jar app.jar > app.log 2>&1 </dev/null &
 
             sleep 2
             pgrep -fl app.jar || true
             exit 0
+
 #  ci:
 #    name: CI (Build & Test)
 #    runs-on: ubuntu-latest
