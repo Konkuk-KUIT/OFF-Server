@@ -12,9 +12,9 @@ public enum ProjectCountType {
     PLUS_FIVE("5회 이상", 5);
 
     private final String value;
-    private final int count;
+    private final Integer count;
 
-    ProjectCountType(String value, int count) {
+    ProjectCountType(String value, Integer count) {
         this.value = value;
         this.count = count;
     }
