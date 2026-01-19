@@ -35,6 +35,15 @@ jobs:
           JAR=$(ls build/libs/*.jar | head -n 1)
           cp "$JAR" app.jar
 
+      - name: Remove old JAR on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            rm -f /home/ubuntu/app/app.jar
+
       # EC2로 정확히 하나의 JAR만 전송
       - name: Copy JAR to EC2
         uses: appleboy/scp-action@v0.1.7
