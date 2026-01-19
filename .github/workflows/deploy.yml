@@ -61,7 +61,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           source: build/libs/*.jar
-          target: /home/ubuntu/app
+          target: /home/ubuntu/app/app.jar
 
       - name: Run application on EC2
         uses: appleboy/ssh-action@v1.0.3
@@ -69,12 +69,11 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
           script: |
-            mkdir -p /home/ubuntu/app
             cd /home/ubuntu/app
-
-            # 기존 실행 파일 종료
-            pgrep -f '.jar' && pkill -f '.jar' || true
-
+            pkill -f app.jar || true
+            
             # 최신 JAR 실행
             nohup java -jar *.jar > app.log 2>&1 &
+            exit 0
