@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -39,4 +41,7 @@ public class Member {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProjectCountType projectCountType;
+
+    @OneToMany(mappedBy = "member")
+    private List<Portfolio> portfolios = new ArrayList<>();
 }
