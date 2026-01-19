@@ -71,23 +71,17 @@ jobs:
               rm -rf app.jar
             fi
 
-      # 실행
-      - name: Run application on EC2
+      # systemd로 앱 재시작
+      - name: Restart app via systemd
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          script_stop: false
-          request_pty: false
           script: |
-            cd /home/ubuntu/app
-            pkill -f app.jar || true
+            sudo systemctl restart app
+            systemctl status app --no-pager
 
-            nohup java -jar app.jar > app.log 2>&1 &
-
-            sleep 2
-            pgrep -fl app.jar || true
 
 
 #  ci:
