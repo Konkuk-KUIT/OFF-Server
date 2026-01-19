@@ -32,4 +32,8 @@ public class Project {
 
     @Column(nullable = false)
     private LocalDate end;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ProjectType projectType;
 }
