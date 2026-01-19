@@ -30,21 +30,23 @@ jobs:
         run: ./gradlew clean build
 
       # JAR 이름 고정
-      - name: Rename JAR
+      - name: Prepare JAR
         run: |
           JAR=$(ls build/libs/*.jar | head -n 1)
           cp "$JAR" app.jar
 
-      - name: Remove old JAR on EC2
+      # 기존 디렉토리/파일 전부 제거
+      - name: Remove old app on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            rm -f /home/ubuntu/app/app.jar
+            mkdir -p /home/ubuntu/app
+            rm -rf /home/ubuntu/app/app.jar
 
-      # EC2로 정확히 하나의 JAR만 전송
+      # 디렉토리로 풀리는 걸 감안해서 전송
       - name: Copy JAR to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -54,7 +56,21 @@ jobs:
           source: app.jar
           target: /home/ubuntu/app
 
-      # EC2에서 안전하게 재시작
+      # 실제 파일을 원하는 위치로 정리
+      - name: Normalize JAR on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/app
+            if [ -d app.jar ]; then
+              mv app.jar/app.jar ./app.jar
+              rm -rf app.jar
+            fi
+
+      # 실행
       - name: Run application on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -63,19 +79,11 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script_stop: true
           script: |
-            mkdir -p /home/ubuntu/app
             cd /home/ubuntu/app
-
-            echo "== stop existing app =="
             pkill -f app.jar || true
-
-            echo "== start new app =="
             nohup java -jar app.jar > app.log 2>&1 &
-
             sleep 2
-            echo "== running process =="
             pgrep -fl app.jar || true
-
             exit 0
 #  ci:
 #    name: CI (Build & Test)
