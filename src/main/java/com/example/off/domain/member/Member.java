@@ -1,0 +1,42 @@
+package com.example.off.domain.member;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+
+@Entity
+@Getter
+@NoArgsConstructor
+public class Member {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "member_id")
+    private Long id;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
+    private String email;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(nullable = false)
+    private String phoneNumber;
+
+    @Column(nullable = false)
+    private String nickname;
+
+    @Column(nullable = false)
+    private String selfIntroduction;
+
+    @Column(nullable = false)
+    private LocalDate birth;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ProjectCountType projectCountType;
+}
