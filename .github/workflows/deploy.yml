@@ -2,15 +2,15 @@ name: CI & Deploy (develop)
 
 on:
   # PR 생성/업데이트 시 CI만 실행
-  #pull_request:
-  #  branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
 
   # develop 브랜치에 merge(push) 시 CI와 배포
   push:
-    branches: [ deploy ]
+    branches: [ develop ]
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -35,6 +35,16 @@ jobs:
           JAR=$(ls build/libs/*.jar | grep -v plain | head -n 1)
           cp "$JAR" app.jar
 
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar
 
       # 기존 디렉토리/파일 전부 제거
       - name: Remove old app on EC2
@@ -82,74 +92,3 @@ jobs:
           script: |
             sudo systemctl restart app
             systemctl status app --no-pager
-
-
-
-#  ci:
-#    name: CI (Build & Test)
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - name: Checkout source
-#        uses: actions/checkout@v4
-#
-#      - name: Set up JDK 21
-#        uses: actions/setup-java@v4
-#        with:
-#          java-version: '21'
-#          distribution: 'temurin'
-#
-#      - name: Grant execute permission for gradlew
-#        run: chmod +x gradlew
-#
-#      - name: Build with Gradle
-#        run: ./gradlew clean build
-#
-#  deploy:
-#    name: Deploy to EC2
-#    runs-on: ubuntu-latest
-#
-#    # develop 브랜치에 push 되었을 때만 실행
-#    if: github.event_name == 'push'
-#    needs: ci
-#
-#    steps:
-#      - name: Checkout source
-#        uses: actions/checkout@v4
-#
-#      - name: Set up JDK 21
-#        uses: actions/setup-java@v4
-#        with:
-#          java-version: '21'
-#          distribution: 'temurin'
-#
-#      - name: Grant execute permission for gradlew
-#        run: chmod +x gradlew
-#
-#      - name: Build with Gradle
-#        run: ./gradlew clean build
-#
-#      - name: Copy JAR to EC2
-#        uses: appleboy/scp-action@v0.1.7
-#        with:
-#          host: ${{ secrets.EC2_HOST }}
-#          username: ubuntu
-#          key: ${{ secrets.EC2_SSH_KEY }}
-#          source: build/libs/*.jar
-#          target: /home/ubuntu/app
-#
-#      - name: Run application on EC2
-#        uses: appleboy/ssh-action@v1.0.3
-#        with:
-#          host: ${{ secrets.EC2_HOST }}
-#          username: ubuntu
-#          key: ${{ secrets.EC2_SSH_KEY }}
-#          script: |
-#            mkdir -p /home/ubuntu/app
-#            cd /home/ubuntu/app
-#
-#            # 기존 실행 파일 종료
-#            pgrep -f '.jar' && pkill -f '.jar' || true
-#
-#            # 최신 JAR 실행
-#            nohup java -jar *.jar > app.log 2>&1 &
