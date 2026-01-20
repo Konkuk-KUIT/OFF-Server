@@ -1,6 +1,8 @@
 package com.example.off.domain.member;
 
+import com.example.off.domain.notification.Notification;
 import com.example.off.domain.partnerRecruit.PartnerApplication;
+import com.example.off.domain.pay.PayLog;
 import com.example.off.domain.projectMember.ProjectMember;
 import com.example.off.domain.role.Role;
 import jakarta.persistence.*;
@@ -60,4 +62,10 @@ public class Member {
 
     @OneToMany(mappedBy = "member")
     private List<PartnerApplication> partnerApplications = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member")
+    private List<Notification> notifications = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member")
+    private List<PayLog> payLogs = new ArrayList<>();
 }
