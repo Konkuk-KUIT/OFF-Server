@@ -1,5 +1,7 @@
 package com.example.off.domain.member;
 
+import com.example.off.domain.chat.ChatRoomMember;
+import com.example.off.domain.chat.Message;
 import com.example.off.domain.notification.Notification;
 import com.example.off.domain.partnerRecruit.PartnerApplication;
 import com.example.off.domain.pay.PayLog;
@@ -68,4 +70,10 @@ public class Member {
 
     @OneToMany(mappedBy = "member")
     private List<PayLog> payLogs = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member")
+    private List<ChatRoomMember> chatRoomMembers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member")
+    private List<Message> messages = new ArrayList<>();
 }

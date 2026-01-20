@@ -1,5 +1,6 @@
 package com.example.off.domain.project;
 
+import com.example.off.domain.chat.ChatRoom;
 import com.example.off.domain.projectMember.ProjectMember;
 import com.example.off.domain.task.Task;
 import jakarta.persistence.*;
@@ -46,4 +47,7 @@ public class Project {
 
     @OneToMany(mappedBy = "project")
     private List<Task> tasks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "project")
+    private List<ChatRoom> chatRooms = new ArrayList<>();
 }
