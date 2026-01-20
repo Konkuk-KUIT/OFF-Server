@@ -1,6 +1,7 @@
 package com.example.off.domain.project;
 
 import com.example.off.domain.projectMember.ProjectMember;
+import com.example.off.domain.task.Task;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,6 +41,9 @@ public class Project {
     @Column(nullable = false)
     private ProjectType projectType;
 
-    @OneToMany(mappedBy = "prioect")
+    @OneToMany(mappedBy = "project")
     private List<ProjectMember> projectMembers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "project")
+    private List<Task> tasks = new ArrayList<>();
 }

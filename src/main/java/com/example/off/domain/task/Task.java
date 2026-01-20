@@ -1,8 +1,7 @@
-package com.example.off.domain.projectMember;
+package com.example.off.domain.task;
 
-import com.example.off.domain.member.Member;
 import com.example.off.domain.project.Project;
-import com.example.off.domain.task.Task;
+import com.example.off.domain.projectMember.ProjectMember;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,26 +12,26 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor
-public class ProjectMember {
+public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "project_member_id")
+    @Column(name = "task_id")
     private Long id;
 
     @Column(nullable = false)
-    private Long price;
+    private String name;
 
     @Column(nullable = false)
-    private Boolean isPartner;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
+    private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
-    @OneToMany(mappedBy = "projectMember")
-    private List<Task> tasks = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_member_id", nullable = false)
+    private ProjectMember projectMember;
+
+    @OneToMany(mappedBy = "task")
+    private List<ToDo> toDoList = new ArrayList<>();
 }
