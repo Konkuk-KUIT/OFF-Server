@@ -6,6 +6,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -29,4 +32,7 @@ public class PartnerRecruit {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
+
+    @OneToMany(mappedBy = "partnerRecruit")
+    private List<PartnerApplication> partnerApplications = new ArrayList<>();
 }
