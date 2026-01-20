@@ -21,9 +21,6 @@ public class ProjectMember {
     private Long id;
 
     @Column(nullable = false)
-    private Long price;
-
-    @Column(nullable = false)
     private Boolean isPartner;
 
     @Column(nullable = false)
