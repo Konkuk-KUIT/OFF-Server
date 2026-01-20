@@ -2,6 +2,7 @@ package com.example.off.domain.projectMember;
 
 import com.example.off.domain.member.Member;
 import com.example.off.domain.project.Project;
+import com.example.off.domain.role.Role;
 import com.example.off.domain.task.Task;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -24,6 +25,9 @@ public class ProjectMember {
 
     @Column(nullable = false)
     private Boolean isPartner;
+
+    @Column(nullable = false)
+    private Role role;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
