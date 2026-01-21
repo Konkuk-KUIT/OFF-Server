@@ -5,6 +5,7 @@ import com.example.off.domain.chat.Message;
 import com.example.off.domain.notification.Notification;
 import com.example.off.domain.partnerRecruit.PartnerApplication;
 import com.example.off.domain.pay.PayLog;
+import com.example.off.domain.project.Project;
 import com.example.off.domain.projectMember.ProjectMember;
 import com.example.off.domain.role.Role;
 import jakarta.persistence.*;
@@ -76,4 +77,7 @@ public class Member {
 
     @OneToMany(mappedBy = "member")
     private List<Message> messages = new ArrayList<>();
+
+    @OneToMany(mappedBy = "creator")
+    private List<Project> projects = new ArrayList<>();
 }

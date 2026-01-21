@@ -21,9 +21,6 @@ public class ProjectMember {
     @Column(name = "project_member_id")
     private Long id;
 
-    @Column(nullable = false)
-    private Boolean isPartner;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;

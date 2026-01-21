@@ -1,6 +1,7 @@
 package com.example.off.domain.project;
 
 import com.example.off.domain.chat.ChatRoom;
+import com.example.off.domain.member.Member;
 import com.example.off.domain.projectMember.ProjectMember;
 import com.example.off.domain.task.Task;
 import jakarta.persistence.*;
@@ -20,7 +21,8 @@ import java.util.List;
                 @Index(name = "idx_project_type_start", columnList = "projectType, start"),
                 @Index(name = "idx_project_type_end", columnList = "projectType, end"),
                 @Index(name = "idx_project_start", columnList = "start"),
-                @Index(name = "idx_project_name", columnList = "name")
+                @Index(name = "idx_project_name", columnList = "name"),
+                @Index(name = "idx_project_creator", columnList = "creator_id")
         }
 )
 public class Project {
@@ -59,4 +61,8 @@ public class Project {
 
     @OneToMany(mappedBy = "project")
     private List<ChatRoom> chatRooms = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "creator_id", nullable = false)
+    private Member creator;
 }
