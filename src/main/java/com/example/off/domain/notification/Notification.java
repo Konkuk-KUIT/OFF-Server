@@ -32,6 +32,7 @@ public class Notification {
     @Column(nullable = false)
     private Boolean isRead;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private NotificationType notificationType;
 
