@@ -7,6 +7,11 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
+@Table(
+        indexes = {
+                @Index(name = "idx_todo_task", columnList = "task_id")
+        }
+)
 public class ToDo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
