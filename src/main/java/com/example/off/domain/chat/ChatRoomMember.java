@@ -8,6 +8,15 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
+@Table(
+        name = "chat_room_member",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_member_chat_room",
+                        columnNames = {"member_id", "chat_room_id"}
+                )
+        }
+)
 public class ChatRoomMember {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
