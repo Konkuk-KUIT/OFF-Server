@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -13,10 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Table(
         indexes = {
-                @Index(
-                        name = "idx_notification_member_read_created",
-                        columnList = "member_id, is_read, created_at"
-                )
+                @Index(name = "idx_notification_member_read_created", columnList = "member_id, is_read, created_at")
         }
 )
 public class Notification {
@@ -41,6 +39,10 @@ public class Notification {
     @CreationTimestamp
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)

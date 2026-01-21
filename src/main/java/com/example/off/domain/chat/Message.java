@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -14,10 +15,7 @@ import java.time.LocalDateTime;
 @Table(
         name = "message",
         indexes = {
-                @Index(
-                        name = "idx_message_room_created",
-                        columnList = "chat_room_id, created_at DESC"
-                )
+                @Index(name = "idx_message_room_created", columnList = "chat_room_id, created_at DESC")
         }
 )
 public class Message {
@@ -32,6 +30,10 @@ public class Message {
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)

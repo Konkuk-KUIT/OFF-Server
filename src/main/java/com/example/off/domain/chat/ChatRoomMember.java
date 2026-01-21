@@ -4,6 +4,10 @@ import com.example.off.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -11,10 +15,7 @@ import lombok.NoArgsConstructor;
 @Table(
         name = "chat_room_member",
         uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_member_chat_room",
-                        columnNames = {"member_id", "chat_room_id"}
-                )
+                @UniqueConstraint(name = "uk_member_chat_room", columnNames = {"member_id", "chat_room_id"})
         }
 )
 public class ChatRoomMember {
@@ -22,6 +23,14 @@ public class ChatRoomMember {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "chat_room_member_id")
     private Long id;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
