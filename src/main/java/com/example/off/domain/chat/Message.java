@@ -10,6 +10,15 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor
+@Table(
+        name = "message",
+        indexes = {
+                @Index(
+                        name = "idx_message_room_created",
+                        columnList = "chat_room_id, created_at DESC"
+                )
+        }
+)
 public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
