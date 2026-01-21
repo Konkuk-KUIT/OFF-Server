@@ -5,6 +5,7 @@ import com.example.off.domain.projectMember.ProjectMember;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -24,7 +25,8 @@ public class PayLog {
     @Column(name = "pay_log_id")
     private Long id;
 
-    @Column(nullable = false)
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)

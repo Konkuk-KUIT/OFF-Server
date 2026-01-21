@@ -4,6 +4,11 @@ import com.example.off.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CollectionId;
+import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.CreatedBy;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -26,6 +31,10 @@ public class PartnerApplication {
 
     @Column(nullable = false)
     private Boolean isFromProject;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
