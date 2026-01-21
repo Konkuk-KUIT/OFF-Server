@@ -7,6 +7,11 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
+@Table(
+        indexes = {
+                @Index(name = "idx_portfolio_member", columnList = "member_id")
+        }
+)
 public class Portfolio {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
