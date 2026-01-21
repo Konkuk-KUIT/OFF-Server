@@ -27,10 +27,10 @@ public class Task {
     @Column(name = "task_id")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     private String description;
 
     @CreationTimestamp

@@ -18,10 +18,10 @@ public class Portfolio {
     @Column(name = "portfolio_id")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 500)
     private String link;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)

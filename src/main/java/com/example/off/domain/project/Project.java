@@ -34,13 +34,13 @@ public class Project {
     @Column(name = "project_id")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     private String description;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 2000)
     private String requirement;
 
     @Column(nullable = false)

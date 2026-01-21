@@ -22,7 +22,7 @@ public class ToDo {
     @Column(name = "todo_id")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 500)
     private String content;
 
     @Column(nullable = false)

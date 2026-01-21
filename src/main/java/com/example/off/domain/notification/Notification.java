@@ -4,6 +4,7 @@ import com.example.off.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -24,9 +25,10 @@ public class Notification {
     @Column(name = "notification_id")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     private String content;
 
+    @Column(length = 500)
     private String url;
 
     @Column(nullable = false)
@@ -36,6 +38,7 @@ public class Notification {
     @Column(nullable = false)
     private NotificationType notificationType;
 
+    @CreationTimestamp
     @Column(nullable = false)
     private LocalDateTime createdAt;
 

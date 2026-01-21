@@ -26,7 +26,7 @@ public class Message {
     @Column(name = "me_id")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     private String content;
 
     @CreationTimestamp
