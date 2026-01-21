@@ -8,6 +8,16 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
+@Table(
+        name = "partner_application",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_member_recruit", columnNames = {"member_id", "partner_recruit_id"})
+        },
+        indexes = {
+                @Index(name = "idx_member_type_status", columnList = "member_id, isFromProject, applicationStatus"),
+                @Index(name = "idx_recruit_type_status", columnList = "partner_recruit_id, isFromProject, applicationStatus")
+        }
+)
 public class PartnerApplication {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
