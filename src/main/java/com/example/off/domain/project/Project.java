@@ -14,6 +14,15 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor
+@Table(
+        name = "project",
+        indexes = {
+                @Index(name = "idx_project_type_start", columnList = "projectType, start"),
+                @Index(name = "idx_project_type_end", columnList = "projectType, end"),
+                @Index(name = "idx_project_start", columnList = "start"),
+                @Index(name = "idx_project_name", columnList = "name")
+        }
+)
 public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
