@@ -10,6 +10,14 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor
+@Table(
+        indexes = {
+                @Index(
+                        name = "idx_notification_member_read_created",
+                        columnList = "member_id, is_read, created_at"
+                )
+        }
+)
 public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,6 +37,7 @@ public class Notification {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
