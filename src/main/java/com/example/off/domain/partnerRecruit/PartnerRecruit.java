@@ -12,6 +12,18 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor
+@Table(
+        name = "partner_recruit",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_project_role",
+                        columnNames = {"project_id", "role"}
+                )
+        },
+        indexes = {
+                @Index(name = "idx_status_role", columnList = "recruitStatus, role"),
+        }
+)
 public class PartnerRecruit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
