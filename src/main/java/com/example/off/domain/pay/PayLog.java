@@ -11,6 +11,13 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor
+@Table(
+        name = "pay_log",
+        indexes = {
+                @Index(name = "idx_payer_created", columnList = "member_id, createdAt DESC"),
+                @Index(name = "idx_payee_created", columnList = "project_member_id, createdAt DESC")
+        }
+)
 public class PayLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
