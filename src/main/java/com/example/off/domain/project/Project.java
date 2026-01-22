@@ -2,6 +2,7 @@ package com.example.off.domain.project;
 
 import com.example.off.domain.chat.ChatRoom;
 import com.example.off.domain.member.Member;
+import com.example.off.domain.partnerRecruit.PartnerRecruit;
 import com.example.off.domain.projectMember.ProjectMember;
 import com.example.off.domain.task.Task;
 import jakarta.persistence.*;
@@ -72,6 +73,9 @@ public class Project {
 
     @OneToMany(mappedBy = "project")
     private List<ChatRoom> chatRooms = new ArrayList<>();
+
+    @OneToMany(mappedBy = "project")
+    private List<PartnerRecruit> partnerRecruits = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_id", nullable = false)
