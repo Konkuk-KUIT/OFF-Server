@@ -66,10 +66,8 @@ public class Member {
     @OneToMany(mappedBy = "member")
     private List<Portfolio> portfolios = new ArrayList<>();
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "member_roles", joinColumns = @JoinColumn(name = "member_id"))
-    @Enumerated(EnumType.STRING)
-    private Set<Role> roles = new HashSet<>();
+    @OneToMany(mappedBy = "member")
+    private List<MemberRole> memberRoles = new ArrayList<>();
 
     @OneToMany(mappedBy = "member")
     private List<ProjectMember> projectMembers = new ArrayList<>();
