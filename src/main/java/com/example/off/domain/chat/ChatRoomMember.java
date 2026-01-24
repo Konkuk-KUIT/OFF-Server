@@ -32,6 +32,9 @@ public class ChatRoomMember {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(nullable = false)
+    private LocalDateTime lastReadAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
@@ -39,4 +42,15 @@ public class ChatRoomMember {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_room_id", nullable = false)
     private ChatRoom chatRoom;
+
+    public void updateLastReadAt() {
+        this.lastReadAt = LocalDateTime.now();
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (this.lastReadAt == null) {
+            this.lastReadAt = LocalDateTime.now();
+        }
+    }
 }
