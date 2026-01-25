@@ -1,5 +1,8 @@
 package com.example.off.domain.notification;
 
+import lombok.Getter;
+
+@Getter
 public enum NotificationType {
     INVITE("파트너 매칭"),
     CHAT("채팅"),
