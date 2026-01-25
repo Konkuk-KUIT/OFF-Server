@@ -19,7 +19,7 @@ public class OffControllerAdvice {
         log.error("BaseException: {}", e.getMessage());
         ResponseCode responseCode = e.getResponseCode();
         return ResponseEntity
-                .status(HttpStatus.valueOf(responseCode.getCode())) // 혹은 상황에 맞는 HTTP Status
+                .status(responseCode.getHttpStatus()) // 혹은 상황에 맞는 HTTP Status
                 .body(new BaseResponse<>(responseCode));
     }
 
