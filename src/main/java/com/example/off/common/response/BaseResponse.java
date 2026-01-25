@@ -1,0 +1,38 @@
+package com.example.off.common.response;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+
+@Getter
+@JsonPropertyOrder({"success", "code", "message", "data"})
+public class BaseResponse<T> {
+    @Schema(description = "성공 여부", example = "true")
+    private final boolean success;
+
+    @Schema(description = "응답 코드", example = "200")
+    private final int code;
+
+    @Schema(description = "응답 메세지", example = "요청에 성공하였습니다.")
+    private final String message;
+
+    private final T data;
+
+    public BaseResponse(ResponseCode responseCode, T result) {
+        this.success = responseCode.isSuccess();
+        this.code = responseCode.getCode();
+        this.message = responseCode.getMessage();
+        this.data = result;
+    }
+
+    public BaseResponse(ResponseCode responseCode) {
+        this.success = responseCode.isSuccess();
+        this.code = responseCode.getCode();
+        this.message = responseCode.getMessage();
+        this.data = null;
+    }
+
+    public static <T> BaseResponse<T> ok(T result) {
+        return new BaseResponse<>(ResponseCode.SUCCESS, result);
+    }
+}
