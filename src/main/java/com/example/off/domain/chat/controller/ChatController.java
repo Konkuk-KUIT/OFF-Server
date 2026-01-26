@@ -4,6 +4,8 @@ import com.example.off.common.response.BaseResponse;
 import com.example.off.domain.chat.ChatType;
 import com.example.off.domain.chat.dto.ChatMessageDetailResponse;
 import com.example.off.domain.chat.dto.ChatRoomListResponse;
+import com.example.off.domain.chat.dto.SendMessageRequest;
+import com.example.off.domain.chat.dto.SendMessageResponse;
 import com.example.off.domain.chat.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,6 +32,7 @@ public class ChatController {
     }
 
     @GetMapping("/rooms/{roomId}")
+    @Operation(summary = "채팅방 목록 조회", description = "채티방 속 메세지를 조회합니다.")
     public BaseResponse<ChatMessageDetailResponse> getMessages(
             @PathVariable Long roomId,
             @RequestParam(required = false) Long cursor,
@@ -39,4 +42,14 @@ public class ChatController {
         ChatMessageDetailResponse data = chatService.getChatMessages(memberId, roomId, cursor, size);
         return BaseResponse.ok(data);
     }
+
+    @PostMapping("/rooms/{roomId}")
+    @Operation(summary = "채팅 보내기", description = "채팅을 보냅니다.")
+    public BaseResponse<SendMessageResponse> sendMessage(@Parameter(hidden = true) @RequestParam(defaultValue = "1") Long memberId,
+                                                         @RequestBody SendMessageRequest request
+    ) {
+        SendMessageResponse data = chatService.sendMessage(memberId, request.roomId(), request.content());
+        return BaseResponse.ok(data);
+    }
+
 }

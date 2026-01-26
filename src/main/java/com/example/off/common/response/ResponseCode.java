@@ -31,8 +31,11 @@ public enum ResponseCode {
     BAD_NOTIFICATION_REQUEST(false, 400, "유효하지 않은 요청입니다.", HttpStatus.BAD_REQUEST),
 
     // 채팅
-    OPPONENT_NOT_FOUND(false, 404, "채팅 상대방을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+    OPPONENT_NOT_FOUND(false, 404, "채팅 상대방을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    CHATROOM_NOT_FOUND(false, 404, "채팅방을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
+    // 회원
+    MEMBER_NOT_FOUND(false, 404, "회원을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
 
     private boolean isSuccess;
     private int code;

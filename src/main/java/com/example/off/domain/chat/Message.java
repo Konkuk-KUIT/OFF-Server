@@ -45,4 +45,11 @@ public class Message {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_room_id", nullable = false)
     private ChatRoom chatRoom;
+
+    public Message(String content, boolean isRead, Member member, ChatRoom chatRoom) {
+        this.content = content;
+        this.isRead = isRead;
+        this.member = member;
+        this.chatRoom = chatRoom;
+    }
 }

@@ -9,8 +9,12 @@ import com.example.off.domain.chat.Message;
 import com.example.off.domain.chat.dto.ChatMessageDetailResponse;
 import com.example.off.domain.chat.dto.ChatRoomListResponse;
 import com.example.off.domain.chat.dto.OpponentResponse;
+import com.example.off.domain.chat.dto.SendMessageResponse;
 import com.example.off.domain.chat.repository.ChatRoomMemberRepository;
+import com.example.off.domain.chat.repository.ChatRoomRepository;
 import com.example.off.domain.chat.repository.MessageRepository;
+import com.example.off.domain.member.Member;
+import com.example.off.domain.member.repository.MemberRepository;
 import com.example.off.domain.project.Project;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -24,8 +28,10 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ChatService {
+    private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final MessageRepository messageRepository;
+    private final MemberRepository memberRepository;
 
     public ChatRoomListResponse getChatRoomList(Long memberId, ChatType chatType) {
         List<ChatRoomMember> myParticipations = chatRoomMemberRepository.findAllByMember_IdAndChatRoom_ChatType(memberId, chatType);
@@ -68,5 +74,19 @@ public class ChatService {
                 .toList();
 
         return new ChatMessageDetailResponse(roomId, OpponentResponse.from(opponentMember),messageList, hasNext);
+    }
+
+    @Transactional
+    public SendMessageResponse sendMessage(Long memberId, Long roomId, String content) {
+        ChatRoom room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new OffException(ResponseCode.CHATROOM_NOT_FOUND));
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
+
+        Message message = new Message(content, false, member, room);
+
+        Message savedMessage = messageRepository.save(message);
+
+        return SendMessageResponse.of(savedMessage, true);
     }
 }
