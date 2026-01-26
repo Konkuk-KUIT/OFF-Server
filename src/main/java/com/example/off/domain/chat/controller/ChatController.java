@@ -2,10 +2,7 @@ package com.example.off.domain.chat.controller;
 
 import com.example.off.common.response.BaseResponse;
 import com.example.off.domain.chat.ChatType;
-import com.example.off.domain.chat.dto.ChatMessageDetailResponse;
-import com.example.off.domain.chat.dto.ChatRoomListResponse;
-import com.example.off.domain.chat.dto.SendMessageRequest;
-import com.example.off.domain.chat.dto.SendMessageResponse;
+import com.example.off.domain.chat.dto.*;
 import com.example.off.domain.chat.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -52,4 +49,13 @@ public class ChatController {
         return BaseResponse.ok(data);
     }
 
+    @Operation(summary = "첫 메시지 발송 및 방 생성", description = "대화 기록이 없는 상대에게 방을 새로 만들고 메시지를 보냅니다.")
+    @PostMapping("/rooms/first")
+    public BaseResponse<ChatInitialSendResponse> startChat(
+            @Parameter(hidden = true) @RequestParam(defaultValue = "1") Long memberId,
+            @RequestBody ChatInitialSendRequest request
+    ) {
+        ChatInitialSendResponse data = chatService.createRoomAndSendMessage(memberId, request);
+        return BaseResponse.ok(data);
+    }
 }

@@ -6,16 +6,14 @@ import com.example.off.domain.chat.ChatRoom;
 import com.example.off.domain.chat.ChatRoomMember;
 import com.example.off.domain.chat.ChatType;
 import com.example.off.domain.chat.Message;
-import com.example.off.domain.chat.dto.ChatMessageDetailResponse;
-import com.example.off.domain.chat.dto.ChatRoomListResponse;
-import com.example.off.domain.chat.dto.OpponentResponse;
-import com.example.off.domain.chat.dto.SendMessageResponse;
+import com.example.off.domain.chat.dto.*;
 import com.example.off.domain.chat.repository.ChatRoomMemberRepository;
 import com.example.off.domain.chat.repository.ChatRoomRepository;
 import com.example.off.domain.chat.repository.MessageRepository;
 import com.example.off.domain.member.Member;
 import com.example.off.domain.member.repository.MemberRepository;
 import com.example.off.domain.project.Project;
+import com.example.off.domain.projectMember.repository.ProjectMemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +30,7 @@ public class ChatService {
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final MessageRepository messageRepository;
     private final MemberRepository memberRepository;
+    private final ProjectMemberRepository projectMemberRepository;
 
     public ChatRoomListResponse getChatRoomList(Long memberId, ChatType chatType) {
         List<ChatRoomMember> myParticipations = chatRoomMemberRepository.findAllByMember_IdAndChatRoom_ChatType(memberId, chatType);
@@ -70,10 +69,10 @@ public class ChatService {
 
         List<ChatMessageDetailResponse.ChatMessageResponse> messageList = messages.stream()
                 .map(m -> ChatMessageDetailResponse
-                        .ChatMessageResponse.of(m,m.getMember().getId().equals(memberId)))
+                        .ChatMessageResponse.of(m, m.getMember().getId().equals(memberId)))
                 .toList();
 
-        return new ChatMessageDetailResponse(roomId, OpponentResponse.from(opponentMember),messageList, hasNext);
+        return new ChatMessageDetailResponse(roomId, OpponentResponse.from(opponentMember), messageList, hasNext);
     }
 
     @Transactional
@@ -88,5 +87,34 @@ public class ChatService {
         Message savedMessage = messageRepository.save(message);
 
         return SendMessageResponse.of(savedMessage, true);
+    }
+
+    @Transactional
+    public ChatInitialSendResponse createRoomAndSendMessage(Long memberId, ChatInitialSendRequest request) {
+        Member me = memberRepository.findById(memberId)
+                .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
+        Member opponent = memberRepository.findById(request.opponentId())
+                .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
+
+        List<Long> myProjectIds = projectMemberRepository.findAllByMember_Id(memberId).stream()
+                .map(pm -> pm.getProject().getId())
+                .toList();
+
+        boolean isSameProject = projectMemberRepository.findAllByMember_Id(request.opponentId()).stream()
+                .anyMatch(pm -> myProjectIds.contains(pm.getProject().getId()));
+
+        ChatType determinedType = isSameProject ? ChatType.PROJECT : ChatType.CONTACT;
+
+        ChatRoom newRoom = new ChatRoom(determinedType);
+        chatRoomRepository.save(newRoom);
+
+        ChatRoomMember myParticipation = new ChatRoomMember(newRoom, me);
+        ChatRoomMember opponentParticipation = new ChatRoomMember(newRoom, opponent);
+        chatRoomMemberRepository.saveAll(List.of(myParticipation, opponentParticipation));
+
+        Message firstMessage = new Message(request.content(), false, me, newRoom);
+        messageRepository.save(firstMessage);
+
+        return ChatInitialSendResponse.of(newRoom, firstMessage);
     }
 }

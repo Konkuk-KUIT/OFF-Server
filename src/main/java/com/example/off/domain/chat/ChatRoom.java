@@ -41,4 +41,8 @@ public class ChatRoom {
 
     @OneToMany(mappedBy = "chatRoom")
     private List<Message> messages = new ArrayList<>();
+
+    public ChatRoom(ChatType chatType) {
+        this.chatType = chatType;
+    }
 }
