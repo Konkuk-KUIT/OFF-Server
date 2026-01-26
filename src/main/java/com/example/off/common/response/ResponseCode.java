@@ -24,7 +24,11 @@ public enum ResponseCode {
     BAD_REQUEST(false, 400, "유효하지 않은 요청입니다.", HttpStatus.BAD_REQUEST),
     API_NOT_FOUND(false, 404, "존재하지 않는 API입니다.", HttpStatus.NOT_FOUND),
     METHOD_NOT_ALLOWED(false, 405, "유효하지 않은 Http 메서드입니다.", HttpStatus.METHOD_NOT_ALLOWED),
-    INTERNAL_SERVER_ERROR(false, 500, "서버 내부 오류입니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    INTERNAL_SERVER_ERROR(false, 500, "서버 내부 오류입니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    // 알림
+    NOTIFICATION_NOT_FOUND(false, 404, "알림을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    BAD_NOTIFICATION_REQUEST(false, 400, "유효하지 않은 요청입니다.", HttpStatus.BAD_REQUEST);
 
     private boolean isSuccess;
     private int code;
