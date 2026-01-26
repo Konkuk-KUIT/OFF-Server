@@ -1,6 +1,8 @@
 package com.example.off.domain.chat.controller;
 
+import com.example.off.common.annotation.CustomExceptionDescription;
 import com.example.off.common.response.BaseResponse;
+import com.example.off.common.swagger.SwaggerResponseDescription;
 import com.example.off.domain.chat.ChatType;
 import com.example.off.domain.chat.dto.*;
 import com.example.off.domain.chat.service.ChatService;
@@ -19,6 +21,7 @@ public class ChatController {
 
     @Operation(summary = "채팅방 목록 조회", description = "사용자가 참여 중인 채팅방 목록을 필터링하여 조회합니다.")
     @GetMapping("/rooms")
+    @CustomExceptionDescription(SwaggerResponseDescription.GET_CHAT_ROOMS)
     public BaseResponse<ChatRoomListResponse> getChatRoomList(
             @Parameter(hidden = true) @RequestParam(defaultValue = "1") Long memberId,
             @Parameter(description = "채팅방 타입 (개인/팀 등)")
@@ -30,6 +33,7 @@ public class ChatController {
 
     @GetMapping("/rooms/{roomId}")
     @Operation(summary = "채팅방 목록 조회", description = "채티방 속 메세지를 조회합니다.")
+    @CustomExceptionDescription(SwaggerResponseDescription.GET_CHAT_MESSAGES)
     public BaseResponse<ChatMessageDetailResponse> getMessages(
             @PathVariable Long roomId,
             @RequestParam(required = false) Long cursor,
@@ -42,6 +46,7 @@ public class ChatController {
 
     @PostMapping("/rooms/{roomId}")
     @Operation(summary = "채팅 보내기", description = "채팅을 보냅니다.")
+    @CustomExceptionDescription(SwaggerResponseDescription.SEND_MESSAGES)
     public BaseResponse<SendMessageResponse> sendMessage(@Parameter(hidden = true) @RequestParam(defaultValue = "1") Long memberId,
                                                          @RequestBody SendMessageRequest request
     ) {
@@ -51,6 +56,7 @@ public class ChatController {
 
     @Operation(summary = "첫 메시지 발송 및 방 생성", description = "대화 기록이 없는 상대에게 방을 새로 만들고 메시지를 보냅니다.")
     @PostMapping("/rooms/first")
+    @CustomExceptionDescription(SwaggerResponseDescription.CREATE_ROOM_AND_SEND_MESSAGES)
     public BaseResponse<ChatInitialSendResponse> startChat(
             @Parameter(hidden = true) @RequestParam(defaultValue = "1") Long memberId,
             @RequestBody ChatInitialSendRequest request

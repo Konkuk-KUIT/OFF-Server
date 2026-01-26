@@ -1,6 +1,8 @@
 package com.example.off.domain.notification.controller;
 
+import com.example.off.common.annotation.CustomExceptionDescription;
 import com.example.off.common.response.BaseResponse;
+import com.example.off.common.swagger.SwaggerResponseDescription;
 import com.example.off.domain.notification.dto.NotificationListResponse;
 import com.example.off.domain.notification.dto.NotificationReadResponse;
 import com.example.off.domain.notification.service.NotificationService;
@@ -20,6 +22,7 @@ public class NotificationController {
 
     @Operation(summary = "알림 목록 조회", description = "커서 기반 페이징 및 자동 읽음 처리가 포함된 알림 목록을 조회합니다.")
     @GetMapping
+    @CustomExceptionDescription(SwaggerResponseDescription.GET_NOTIFICATIONS)
     public BaseResponse<NotificationListResponse> getNotifications(
             @RequestParam(name = "memberId", defaultValue = "1") Long memberId,
             @Parameter(description = "마지막으로 조회된 알림 ID (첫 페이지 조회 시 null)")
@@ -33,6 +36,7 @@ public class NotificationController {
 
     @Operation(summary = "URL 알림 읽음 처리", description = "URL이 포함된 알림을 클릭했을 때 읽음 상태로 변경합니다.")
     @PatchMapping("/{notificationId}/read")
+    @CustomExceptionDescription(SwaggerResponseDescription.READ_NOTIFICATIONS)
     public BaseResponse<NotificationReadResponse> readNotification(
             @RequestParam(name = "memberId", defaultValue = "1") Long memberId,
             @PathVariable Long notificationId
