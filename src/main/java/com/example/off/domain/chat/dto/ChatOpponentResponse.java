@@ -1,6 +1,6 @@
 package com.example.off.domain.chat.dto;
 
-public record ChatOpponetResponse(
+public record ChatOpponentResponse(
      String nickname,
      String profileImage
 ) {
