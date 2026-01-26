@@ -27,19 +27,6 @@ public class ChatRoomListResponse {
         private LastMessageInfo lastMessageInfo;
         private int unReadCount;
 
-        public static class OpponentResponse {
-            private String nickname;
-            private String profileImage;
-
-            public OpponentResponse(String nickname, String profileImage) {
-                this.nickname = nickname;
-                this.profileImage = profileImage;
-            }
-
-            public static OpponentResponse from(ChatRoomMember opponent){
-                return new OpponentResponse(opponent.getMember().getNickname(), opponent.getMember().getProfileImage());
-            }
-        }
         public static class ChatProjectInfo {
             private Long id;
             private String name;

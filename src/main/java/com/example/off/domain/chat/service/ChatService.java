@@ -6,11 +6,15 @@ import com.example.off.domain.chat.ChatRoom;
 import com.example.off.domain.chat.ChatRoomMember;
 import com.example.off.domain.chat.ChatType;
 import com.example.off.domain.chat.Message;
+import com.example.off.domain.chat.dto.ChatMessageDetailResponse;
 import com.example.off.domain.chat.dto.ChatRoomListResponse;
+import com.example.off.domain.chat.dto.OpponentResponse;
 import com.example.off.domain.chat.repository.ChatRoomMemberRepository;
 import com.example.off.domain.chat.repository.MessageRepository;
 import com.example.off.domain.project.Project;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,5 +47,26 @@ public class ChatService {
                 .toList();
 
         return new ChatRoomListResponse(responses);
+    }
+
+    @Transactional(readOnly = true)
+    public ChatMessageDetailResponse getChatMessages(Long memberId, Long roomId, Long cursor, int size) {
+        Pageable pageable = PageRequest.of(0, size + 1);
+        List<Message> messages = messageRepository.findOlderMessages(roomId, cursor, pageable);
+
+        boolean hasNext = messages.size() > size;
+        if (hasNext) {
+            messages = messages.subList(0, size);
+        }
+
+        ChatRoomMember opponentMember = chatRoomMemberRepository.findOpponentByRoomIdAndMyId(roomId, memberId)
+                .orElseThrow(() -> new OffException(ResponseCode.OPPONENT_NOT_FOUND));
+
+        List<ChatMessageDetailResponse.ChatMessageResponse> messageList = messages.stream()
+                .map(m -> ChatMessageDetailResponse
+                        .ChatMessageResponse.of(m,m.getMember().getId().equals(memberId)))
+                .toList();
+
+        return new ChatMessageDetailResponse(roomId, OpponentResponse.from(opponentMember),messageList, hasNext);
     }
 }
