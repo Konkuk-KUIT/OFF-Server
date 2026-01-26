@@ -28,7 +28,11 @@ public enum ResponseCode {
 
     // 알림
     NOTIFICATION_NOT_FOUND(false, 404, "알림을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    BAD_NOTIFICATION_REQUEST(false, 400, "유효하지 않은 요청입니다.", HttpStatus.BAD_REQUEST);
+    BAD_NOTIFICATION_REQUEST(false, 400, "유효하지 않은 요청입니다.", HttpStatus.BAD_REQUEST),
+
+    // 채팅
+    OPPONENT_NOT_FOUND(false, 404, "채팅 상대방을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+
 
     private boolean isSuccess;
     private int code;
