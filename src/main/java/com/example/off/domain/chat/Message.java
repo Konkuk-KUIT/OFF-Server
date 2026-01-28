@@ -27,6 +27,9 @@ public class Message {
     @Column(nullable = false, length = 1000)
     private String content;
 
+    @Column(nullable = false)
+    private boolean isRead;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -42,4 +45,11 @@ public class Message {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_room_id", nullable = false)
     private ChatRoom chatRoom;
+
+    public Message(String content, boolean isRead, Member member, ChatRoom chatRoom) {
+        this.content = content;
+        this.isRead = isRead;
+        this.member = member;
+        this.chatRoom = chatRoom;
+    }
 }

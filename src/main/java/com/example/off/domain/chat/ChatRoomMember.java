@@ -53,4 +53,9 @@ public class ChatRoomMember {
             this.lastReadAt = LocalDateTime.now();
         }
     }
+
+    public ChatRoomMember(ChatRoom chatRoom, Member member) {
+        this.chatRoom = chatRoom;
+        this.member = member;
+    }
 }
