@@ -54,6 +54,9 @@ public class Member {
     @Column(nullable = false, length = 500)
     private String profileImage;
 
+    @Column(nullable = false)
+    private Boolean isWorking;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProjectCountType projectCountType;
