@@ -10,7 +10,6 @@ import com.example.off.domain.member.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,7 +28,7 @@ public class AuthController {
             @RequestBody @Valid SignupRequest signupRequest
     ){
         authService.signup(signupRequest);
-        return BaseResponse.ok(null);
+        return BaseResponse.ok();
     }
 
 //    @PostMapping("/login")
