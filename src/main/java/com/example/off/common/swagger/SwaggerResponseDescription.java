@@ -41,6 +41,10 @@ public enum SwaggerResponseDescription {
             MEMBER_NOT_FOUND
     ))),
 
+    SIGNUP(new LinkedHashSet<>(Set.of(
+            DUPLICATE_EMAIL
+    ))),
+
 
     DEFAULT(new LinkedHashSet<>());
 

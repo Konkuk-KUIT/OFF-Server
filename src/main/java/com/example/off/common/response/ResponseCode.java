@@ -35,7 +35,9 @@ public enum ResponseCode {
     CHATROOM_NOT_FOUND(false, 404, "채팅방을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
     // 회원
-    MEMBER_NOT_FOUND(false, 404, "회원을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+    MEMBER_NOT_FOUND(false, 404, "회원을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    DUPLICATE_EMAIL(false, 400, "이미 사용 중인 이메일입니다.", HttpStatus.BAD_REQUEST);
+
 
     private boolean isSuccess;
     private int code;

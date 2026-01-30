@@ -9,6 +9,7 @@ import com.example.off.domain.project.Project;
 import com.example.off.domain.projectMember.ProjectMember;
 import com.example.off.domain.role.Role;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -39,8 +40,8 @@ public class Member {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, unique = true, length = 20)
-    private String phoneNumber;
+//    @Column(nullable = false, unique = true, length = 20)
+//    private String phoneNumber;
 
     @Column(nullable = false, unique = true, length = 50)
     private String nickname;
@@ -51,8 +52,8 @@ public class Member {
     @Column(nullable = false)
     private LocalDate birth;
 
-    @Column(nullable = false, length = 500)
-    private String profileImage;
+//    @Column(nullable = false, length = 500)
+//    private String profileImage;
 
     @Column(nullable = false)
     private Boolean isWorking;
@@ -95,4 +96,27 @@ public class Member {
 
     @OneToMany(mappedBy = "creator")
     private List<Project> projects = new ArrayList<>();
+
+    private Member(
+            String name, String email, String password, String nickname, String selfIntroduction, LocalDate birth, ProjectCountType projectCountType
+    ) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.nickname = nickname;
+        this.selfIntroduction = selfIntroduction;
+        this.birth = birth;
+        this.isWorking = false;
+        this.projectCountType = projectCountType;
+    }
+
+    public static Member create(String name, String email, String password, String nickname, String selfIntroduction, LocalDate birth, ProjectCountType projectCountType) {
+        return new Member(
+                name, email, password, nickname, selfIntroduction, birth, projectCountType
+        );
+    }
+
+    public void addPortfolio(Portfolio portfolio){
+        this.portfolios.add(portfolio);
+    }
 }
