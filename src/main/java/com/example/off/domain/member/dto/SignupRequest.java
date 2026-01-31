@@ -29,6 +29,7 @@ public class SignupRequest {
     private String password;
 
     //프로필 정보
+    private String profileImage;
     @NotNull
     private String nickname;
     @NotNull

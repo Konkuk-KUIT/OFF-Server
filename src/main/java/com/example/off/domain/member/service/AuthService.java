@@ -28,14 +28,15 @@ public class AuthService {
 //        String encodedPassword = passwordEncoder.encode(request.password());
 
         //회원 생성
-        Member member = Member.create(
+        Member member = Member.of(
                 signupRequest.getName(),
                 signupRequest.getEmail(),
                 signupRequest.getPassword(),
                 signupRequest.getNickname(),
                 signupRequest.getSelfIntroduction(),
                 signupRequest.getBirth(),
-                signupRequest.getProjectCount()
+                signupRequest.getProjectCount(),
+                signupRequest.getProfileImage()
         );
 
         //포트폴리오 생성 및 연관 관계 설정

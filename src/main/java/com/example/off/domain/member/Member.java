@@ -52,8 +52,8 @@ public class Member {
     @Column(nullable = false)
     private LocalDate birth;
 
-//    @Column(nullable = false, length = 500)
-//    private String profileImage;
+    @Column(nullable = false, length = 500)
+    private String profileImage;
 
     @Column(nullable = false)
     private Boolean isWorking;
@@ -98,7 +98,7 @@ public class Member {
     private List<Project> projects = new ArrayList<>();
 
     private Member(
-            String name, String email, String password, String nickname, String selfIntroduction, LocalDate birth, ProjectCountType projectCountType
+            String name, String email, String password, String nickname, String selfIntroduction, LocalDate birth, ProjectCountType projectCountType, String profileImage
     ) {
         this.name = name;
         this.email = email;
@@ -108,15 +108,20 @@ public class Member {
         this.birth = birth;
         this.isWorking = false;
         this.projectCountType = projectCountType;
+        this.profileImage = null;
     }
 
-    public static Member create(String name, String email, String password, String nickname, String selfIntroduction, LocalDate birth, ProjectCountType projectCountType) {
+    public static Member of(String name, String email, String password, String nickname, String selfIntroduction, LocalDate birth, ProjectCountType projectCountType, String profileImage) {
         return new Member(
-                name, email, password, nickname, selfIntroduction, birth, projectCountType
+                name, email, password, nickname, selfIntroduction, birth, projectCountType, profileImage
         );
     }
 
     public void addPortfolio(Portfolio portfolio){
         this.portfolios.add(portfolio);
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 }
