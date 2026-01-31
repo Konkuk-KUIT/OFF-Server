@@ -42,7 +42,7 @@ public class AuthService {
         //포트폴리오 생성 및 연관 관계 설정
         if(signupRequest.getPortfolioList()!=null){
             for (SignupRequest.PortfolioRequest pr : signupRequest.getPortfolioList()) {
-                Portfolio portfolio = Portfolio.create(pr.getDescription(), pr.getLink(), member);
+                Portfolio portfolio = Portfolio.of(pr.getDescription(), pr.getLink(), member);
                 member.addPortfolio(portfolio);
             }
         }

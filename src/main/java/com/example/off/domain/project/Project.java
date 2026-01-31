@@ -22,9 +22,9 @@ import java.util.List;
 @Table(
         name = "project",
         indexes = {
-                @Index(name = "idx_project_type_start", columnList = "projectType, start"),
-                @Index(name = "idx_project_type_end", columnList = "projectType, end"),
-                @Index(name = "idx_project_start", columnList = "start"),
+                @Index(name = "idx_project_type_start", columnList = "projectType, start_date"),
+                @Index(name = "idx_project_type_end", columnList = "projectType, end_date"),
+                @Index(name = "idx_project_start", columnList = "start_date"),
                 @Index(name = "idx_project_name", columnList = "name"),
                 @Index(name = "idx_project_creator", columnList = "creator_id")
         }
@@ -47,10 +47,10 @@ public class Project {
     @Column(nullable = false)
     private Long estimation;
 
-    @Column(nullable = false)
+    @Column(name = "start_date", nullable = false)
     private LocalDate start;
 
-    @Column(nullable = false)
+    @Column(name = "end_date", nullable = false)
     private LocalDate end;
 
     @CreationTimestamp

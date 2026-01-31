@@ -46,7 +46,7 @@ public class Portfolio {
         this.member = member;
     }
 
-    public static Portfolio create(String description, String link, Member member){
+    public static Portfolio of(String description, String link, Member member){
         return new Portfolio(description, link, member);
     }
 }
