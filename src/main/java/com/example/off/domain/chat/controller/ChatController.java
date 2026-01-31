@@ -44,16 +44,6 @@ public class ChatController {
         return BaseResponse.ok(data);
     }
 
-    @PostMapping("/rooms/{roomId}")
-    @Operation(summary = "채팅 보내기", description = "채팅을 보냅니다.")
-    @CustomExceptionDescription(SwaggerResponseDescription.SEND_MESSAGES)
-    public BaseResponse<SendMessageResponse> sendMessage(@Parameter(hidden = true) @RequestParam(defaultValue = "1") Long memberId,
-                                                         @RequestBody SendMessageRequest request
-    ) {
-        SendMessageResponse data = chatService.sendMessage(memberId, request.roomId(), request.content());
-        return BaseResponse.ok(data);
-    }
-
     @Operation(summary = "첫 메시지 발송 및 방 생성", description = "대화 기록이 없는 상대에게 방을 새로 만들고 메시지를 보냅니다.")
     @PostMapping("/rooms/first")
     @CustomExceptionDescription(SwaggerResponseDescription.CREATE_ROOM_AND_SEND_MESSAGES)
