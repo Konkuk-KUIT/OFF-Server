@@ -38,6 +38,16 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	//jjwt 라이브러리
+	// 1. JJWT API: 인터페이스와 핵심 규격
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+
+	// 2. JJWT Impl: 실제 로직 구현체 (런타임에 필요)
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+
+	// 3. JJWT Jackson: JSON 파싱을 위해 Jackson 라이브러리 연결 (런타임에 필요)
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 }
 
 tasks.named('test') {
