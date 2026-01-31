@@ -20,7 +20,7 @@ public class AuthService {
     @Transactional
     public void signup(@Valid SignupRequest signupRequest) {
         //이메일 중복 검증
-        if(memberRepository.existByEmail(signupRequest.getEmail())) {
+        if(memberRepository.existsByEmail(signupRequest.getEmail())) {
             throw new DuplicateEmailException();
         }
 
