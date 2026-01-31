@@ -5,6 +5,8 @@ import com.example.off.common.annotation.CustomExceptionDescription;
 import com.example.off.common.response.BaseResponse;
 import com.example.off.common.response.ResponseCode;
 import com.example.off.common.swagger.SwaggerResponseDescription;
+import com.example.off.domain.member.dto.LoginRequest;
+import com.example.off.domain.member.dto.LoginResponse;
 import com.example.off.domain.member.dto.SignupRequest;
 import com.example.off.domain.member.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,6 +33,10 @@ public class AuthController {
         return BaseResponse.ok();
     }
 
-//    @PostMapping("/login")
-//    public SignupRequest login(){}
+    @Operation(summary = "로그인", description = "이메일과 비민번호를 통해 로그인을 하여 토큰을 발급합니다.")
+    @PostMapping("/login")
+    public BaseResponse<LoginResponse> login(@RequestBody @Valid LoginRequest loginRequest){
+        LoginResponse data = authService.login(loginRequest);
+        return BaseResponse.ok(data);
+    }
 }
