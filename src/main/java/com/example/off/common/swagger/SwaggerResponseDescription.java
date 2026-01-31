@@ -1,6 +1,7 @@
 package com.example.off.common.swagger;
 
 import com.example.off.common.response.ResponseCode;
+import io.swagger.v3.oas.models.links.Link;
 import lombok.Getter;
 
 import java.util.HashSet;
@@ -43,6 +44,10 @@ public enum SwaggerResponseDescription {
 
     SIGNUP(new LinkedHashSet<>(Set.of(
             DUPLICATE_EMAIL
+    ))),
+
+    LOGIN(new LinkedHashSet<>(Set.of(
+        INVALID_LOGIN_CREDENTIALS
     ))),
 
 

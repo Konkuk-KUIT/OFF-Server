@@ -48,6 +48,9 @@ dependencies {
 
 	// 3. JJWT Jackson: JSON 파싱을 위해 Jackson 라이브러리 연결 (런타임에 필요)
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+
+	//passwordEncoder 유틸
+	implementation 'org.springframework.security:spring-security-crypto'
 }
 
 tasks.named('test') {

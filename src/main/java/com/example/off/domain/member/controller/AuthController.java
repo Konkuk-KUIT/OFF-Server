@@ -33,9 +33,9 @@ public class AuthController {
         return BaseResponse.ok();
     }
 
-    @Operation(summary = "로그인", description = "이메일과 비민번호를 통해 로그인을 하여 토큰을 발급합니다.")
+    @Operation(summary = "로그인", description = "이메일과 비밀번호를 통해 로그인을 하여 토큰을 발급합니다.")
     @PostMapping("/login")
-    //Todo: swaggerdescription 추가
+    @CustomExceptionDescription(SwaggerResponseDescription.LOGIN)
     public BaseResponse<LoginResponse> login(@RequestBody @Valid LoginRequest loginRequest){
         LoginResponse data = authService.login(loginRequest);
         return BaseResponse.ok(data);

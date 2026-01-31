@@ -10,6 +10,7 @@ import com.example.off.domain.member.repository.MemberRepository;
 import com.example.off.jwt.JwtTokenService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
     public final MemberRepository memberRepository;
     private final JwtTokenService jwtTokenService;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public void signup(@Valid SignupRequest signupRequest) {
@@ -26,14 +28,14 @@ public class AuthService {
             throw new DuplicateEmailException();
         }
 
-        //Todo: pw 암호화
-//        String encodedPassword = passwordEncoder.encode(request.password());
+        //pw 암호화
+        String encodedPassword = passwordEncoder.encode(signupRequest.getPassword());
 
         //회원 생성
         Member member = Member.of(
                 signupRequest.getName(),
                 signupRequest.getEmail(),
-                signupRequest.getPassword(),
+                encodedPassword,
                 signupRequest.getNickname(),
                 signupRequest.getSelfIntroduction(),
                 signupRequest.getBirth(),
@@ -58,8 +60,10 @@ public class AuthService {
         Member member = memberRepository.findByEmail(loginRequest.email()).orElseThrow(AuthenticationFailedException::new);
 
         //비밀번호 검증
-        //Todo: passwordEncoder 도입
-        if (!loginRequest.password().equals(member.getPassword())) {
+        if(!passwordEncoder.matches(
+                loginRequest.password(),
+                member.getPassword()
+        )) {
             throw new AuthenticationFailedException();
         }
 
