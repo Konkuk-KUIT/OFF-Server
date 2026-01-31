@@ -7,6 +7,7 @@ import com.example.off.domain.member.dto.LoginRequest;
 import com.example.off.domain.member.dto.LoginResponse;
 import com.example.off.domain.member.dto.SignupRequest;
 import com.example.off.domain.member.repository.MemberRepository;
+import com.example.off.jwt.JwtTokenService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AuthService {
     public final MemberRepository memberRepository;
+    private final JwtTokenService jwtTokenService;
 
     @Transactional
     public void signup(@Valid SignupRequest signupRequest) {
@@ -61,8 +63,13 @@ public class AuthService {
             throw new AuthenticationFailedException();
         }
 
-        //Todo: 토큰 발급
-        return new LoginResponse("accessToken", "tokenType");
+        //jwt 토큰 발급
+        //Todo: getMemberRoles 수정
+        String accessToken = jwtTokenService.createToken(
+                member.getId().toString(),
+                member.getMemberRoles().getFirst().toString()
+        );
+        return new LoginResponse(accessToken, "Bearer");
     }
 
 

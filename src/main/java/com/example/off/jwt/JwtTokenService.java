@@ -3,6 +3,7 @@ package com.example.off.jwt;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
