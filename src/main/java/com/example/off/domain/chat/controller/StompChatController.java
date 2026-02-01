@@ -6,6 +6,7 @@ import com.example.off.domain.chat.dto.SendMessageRequest;
 import com.example.off.domain.chat.dto.SendMessageResponse;
 import com.example.off.domain.chat.service.ChatService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
 
+@Slf4j
 @Controller // 실시간 통신을 위해 @Controller 사용
 @RequiredArgsConstructor
 public class StompChatController {
@@ -27,6 +29,8 @@ public class StompChatController {
     @MessageMapping("/chat/message")
     @CustomExceptionDescription(SwaggerResponseDescription.SEND_MESSAGES)
     public void sendMessage(@Payload SendMessageRequest request, Principal principal) {
+        log.debug("[send] msg received: sender={}, size={}", principal.getName(),
+                request.content() != null ? request.content().length() : 0);
         // 1. 인터셉터에서 심어준 StompPrincipal에서 memberId 추출
         Long memberId = Long.parseLong(principal.getName());
 

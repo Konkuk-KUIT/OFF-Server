@@ -17,6 +17,7 @@ import com.example.off.domain.projectMember.repository.ProjectMemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +32,7 @@ public class ChatService {
     private final MessageRepository messageRepository;
     private final MemberRepository memberRepository;
     private final ProjectMemberRepository projectMemberRepository;
+    private final SimpMessageSendingOperations messagingTemplate;
 
     public ChatRoomListResponse getChatRoomList(Long memberId, ChatType chatType) {
         List<ChatRoomMember> myParticipations = chatRoomMemberRepository.findAllByMember_IdAndChatRoom_ChatType(memberId, chatType);
@@ -114,6 +116,9 @@ public class ChatService {
 
         Message firstMessage = new Message(request.content(), false, me, newRoom);
         messageRepository.save(firstMessage);
+        SendMessageResponse response = SendMessageResponse.of(firstMessage, true);
+
+        messagingTemplate.convertAndSend("/sub/chat/room/" + newRoom.getId(), response);
 
         return ChatInitialSendResponse.of(newRoom, firstMessage);
     }
