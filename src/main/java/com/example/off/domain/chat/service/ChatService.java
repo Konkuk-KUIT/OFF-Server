@@ -109,7 +109,7 @@ public class ChatService {
         Member me = memberRepository.findById(memberId)
                 .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
         Member opponent = memberRepository.findById(request.opponentId())
-                .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new OffException(ResponseCode.OPPONENT_NOT_FOUND));
 
         List<Long> myProjectIds = projectMemberRepository.findAllByMember_Id(memberId).stream()
                 .map(pm -> pm.getProject().getId())
