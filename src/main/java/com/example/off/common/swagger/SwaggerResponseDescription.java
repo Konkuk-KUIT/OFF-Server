@@ -38,7 +38,8 @@ public enum SwaggerResponseDescription {
     ))),
 
     CREATE_ROOM_AND_SEND_MESSAGES(new HashSet<>(Set.of(
-            MEMBER_NOT_FOUND
+            MEMBER_NOT_FOUND,
+            OPPONENT_NOT_FOUND
     ))),
 
 

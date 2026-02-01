@@ -35,7 +35,11 @@ public enum ResponseCode {
     CHATROOM_NOT_FOUND(false, 404, "채팅방을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
     // 회원
-    MEMBER_NOT_FOUND(false, 404, "회원을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+    MEMBER_NOT_FOUND(false, 404, "회원을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
+    // 토큰
+    INVALID_TOKEN(false, 400, "유효하지 않은 토큰입니다.", HttpStatus.BAD_REQUEST),
+    TOKEN_NOT_FOUND(false, 404, "토큰을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
 
     private boolean isSuccess;
     private int code;

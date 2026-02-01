@@ -51,4 +51,12 @@ public class Notification {
     public void read() {
         this.isRead = true;
     }
+
+    public Notification(String content, String url, Boolean isRead, NotificationType notificationType, Member member) {
+        this.content = content;
+        this.url = url;
+        this.isRead = isRead;
+        this.notificationType = notificationType;
+        this.member = member;
+    }
 }
