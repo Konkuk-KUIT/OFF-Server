@@ -32,7 +32,7 @@ public class ChatController {
     }
 
     @GetMapping("/rooms/{roomId}")
-    @Operation(summary = "채팅방 목록 조회", description = "채티방 속 메세지를 조회합니다.")
+    @Operation(summary = "채팅방 메세지 조회", description = "채티방 속 메세지를 조회합니다.")
     @CustomExceptionDescription(SwaggerResponseDescription.GET_CHAT_MESSAGES)
     public BaseResponse<ChatMessageDetailResponse> getMessages(
             @PathVariable Long roomId,
@@ -41,6 +41,18 @@ public class ChatController {
             @Parameter(hidden = true) @RequestParam(defaultValue = "1") Long memberId // 임시 인증 ID
     ) {
         ChatMessageDetailResponse data = chatService.getChatMessages(memberId, roomId, cursor, size);
+        return BaseResponse.ok(data);
+    }
+
+    @Operation(summary = "일반 메시지 발송", description = "기존에 존재하는 채팅방에서 메시지를 보냅니다.")
+    @PostMapping("/rooms/messages")
+    @CustomExceptionDescription(SwaggerResponseDescription.SEND_MESSAGES)
+    public BaseResponse<SendMessageResponse> sendMessage(
+            @Parameter(hidden = true) @RequestParam(defaultValue = "1") Long memberId,
+            @RequestBody SendMessageRequest request
+    ) {
+        // ChatService에서 DB 저장 + STOMP 배달 + 레드닷 전송을 한꺼번에 처리합니다
+        SendMessageResponse data = chatService.sendMessage(memberId, request.roomId(), request.content());
         return BaseResponse.ok(data);
     }
 
