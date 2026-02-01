@@ -58,6 +58,8 @@ public class ChatService {
 
     @Transactional(readOnly = true)
     public ChatMessageDetailResponse getChatMessages(Long memberId, Long roomId, Long cursor, int size) {
+        messageRepository.markAsReadByRoomId(roomId, memberId);
+
         Pageable pageable = PageRequest.of(0, size + 1);
         List<Message> messages = messageRepository.findOlderMessages(roomId, cursor, pageable);
 
