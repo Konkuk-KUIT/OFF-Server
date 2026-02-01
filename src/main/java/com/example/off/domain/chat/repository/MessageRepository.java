@@ -13,6 +13,13 @@ import java.util.Optional;
 public interface MessageRepository extends JpaRepository<Message, Long> {
     Optional<Message> findFirstByChatRoom_IdOrderByCreatedAtDesc(Long id);
 
+    // 내가 참여한 방들 중, 내가 보낸 게 아니면서 읽지 않은 메시지가 있는지 확인
+    @Query("SELECT EXISTS (SELECT 1 FROM Message m " +
+            "WHERE m.chatRoom IN (SELECT crm.chatRoom FROM ChatRoomMember crm WHERE crm.member.id = :memberId) " +
+            "AND m.member.id != :memberId " +
+            "AND m.isRead = false)")
+    boolean existsUnreadMessages(@Param("memberId") Long memberId);
+
     @Modifying(clearAutomatically = true) // 벌크 연산 후 영속성 컨텍스트를 비워 정합성을 유지합니다
     @Query("UPDATE Message m SET m.isRead = true " +
             "WHERE m.chatRoom.id = :roomId " +

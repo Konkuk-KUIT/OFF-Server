@@ -1,9 +1,11 @@
 package com.example.off.domain.chat.dto;
 
 import com.example.off.domain.chat.Message;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+@Getter
 public class SendMessageResponse {
     private Long id;
     private String content;

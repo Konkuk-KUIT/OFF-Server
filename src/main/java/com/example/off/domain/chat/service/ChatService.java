@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -56,9 +57,13 @@ public class ChatService {
         return new ChatRoomListResponse(responses);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ChatMessageDetailResponse getChatMessages(Long memberId, Long roomId, Long cursor, int size) {
         messageRepository.markAsReadByRoomId(roomId, memberId);
+
+        // 2. 다른 방에 안 읽은 게 더 있는지 확인 (레드닷 업데이트용)
+        boolean hasUnread = messageRepository.existsUnreadMessages(memberId);
+        messagingTemplate.convertAndSend("/sub/user/" + memberId + "/unread-status", Map.of("hasUnread", hasUnread));
 
         Pageable pageable = PageRequest.of(0, size + 1);
         List<Message> messages = messageRepository.findOlderMessages(roomId, cursor, pageable);
@@ -85,12 +90,18 @@ public class ChatService {
                 .orElseThrow(() -> new OffException(ResponseCode.CHATROOM_NOT_FOUND));
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
+        ChatRoomMember opponent = chatRoomMemberRepository.findOpponentByRoomIdAndMyId(room.getId(), memberId)
+                .orElseThrow(() -> new OffException(ResponseCode.OPPONENT_NOT_FOUND));
 
         Message message = new Message(content, false, member, room);
-
         Message savedMessage = messageRepository.save(message);
+        SendMessageResponse response = SendMessageResponse.of(savedMessage, true);
+        messagingTemplate.convertAndSend("/sub/chat/room/" + roomId, response);
 
-        return SendMessageResponse.of(savedMessage, true);
+        String opponentUnreadChannel = "/sub/user/" + opponent.getId() + "/unread-status";
+        messagingTemplate.convertAndSend(opponentUnreadChannel, Map.of("hasUnread", true));
+
+        return response;
     }
 
     @Transactional
@@ -116,12 +127,8 @@ public class ChatService {
         ChatRoomMember opponentParticipation = new ChatRoomMember(newRoom, opponent);
         chatRoomMemberRepository.saveAll(List.of(myParticipation, opponentParticipation));
 
-        Message firstMessage = new Message(request.content(), false, me, newRoom);
-        messageRepository.save(firstMessage);
-        SendMessageResponse response = SendMessageResponse.of(firstMessage, true);
+        SendMessageResponse response = this.sendMessage(memberId, newRoom.getId(), request.content());
 
-        messagingTemplate.convertAndSend("/sub/chat/room/" + newRoom.getId(), response);
-
-        return ChatInitialSendResponse.of(newRoom, firstMessage);
+        return ChatInitialSendResponse.of(newRoom, response);
     }
 }
