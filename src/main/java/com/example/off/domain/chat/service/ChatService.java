@@ -63,7 +63,8 @@ public class ChatService {
 
         // 2. 다른 방에 안 읽은 게 더 있는지 확인 (레드닷 업데이트용)
         boolean hasUnread = messageRepository.existsUnreadMessages(memberId);
-        messagingTemplate.convertAndSend("/sub/user/" + memberId + "/unread-status", Map.of("hasUnread", hasUnread));
+        messagingTemplate.convertAndSendToUser(memberId.toString(), "/queue/unread-status",
+                Map.of("hasUnread", hasUnread));
 
         Pageable pageable = PageRequest.of(0, size + 1);
         List<Message> messages = messageRepository.findOlderMessages(roomId, cursor, pageable);
@@ -98,8 +99,8 @@ public class ChatService {
         SendMessageResponse response = SendMessageResponse.of(savedMessage, true);
         messagingTemplate.convertAndSend("/sub/chat/room/" + roomId, response);
 
-        String opponentUnreadChannel = "/sub/user/" + opponent.getId() + "/unread-status";
-        messagingTemplate.convertAndSend(opponentUnreadChannel, Map.of("hasUnread", true));
+        messagingTemplate.convertAndSendToUser(opponent.getId().toString(), "/queue/unread-status",
+                Map.of("hasUnread", true));
 
         return response;
     }
