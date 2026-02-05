@@ -56,13 +56,13 @@ public class ProjectService {
             info.cost = estimateCostPerRole(info.role, request.getDescription(), request.getRequirement());
         }
 
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = estimateEndDate(startDate, request.getDescription(), request.getRequirement());
+
         // 3. 견적 계산
         int totalEstimate = recruitments.stream()
                 .mapToInt(r -> r.cost * r.count)
                 .sum();
-
-        LocalDate startDate = LocalDate.now();
-        LocalDate endDate = startDate.plusDays(30);
 
         // 4. DB 저장 (짧은 트랜잭션)
         new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
@@ -74,14 +74,12 @@ public class ProjectService {
                     startDate,
                     endDate,
                     projectType,
-                    creator
-            );
+                    creator);
             projectRepository.save(project);
 
             for (RecruitmentInfo info : recruitments) {
                 partnerRecruitRepository.save(
-                        new PartnerRecruit(project, info.role, info.count, RecruitStatus.OPEN)
-                );
+                        new PartnerRecruit(project, info.role, info.count, RecruitStatus.OPEN));
             }
         });
 
@@ -101,8 +99,7 @@ public class ProjectService {
                 endDate.format(END_DATE_FORMATTER),
                 serviceSummary,
                 totalEstimate,
-                estimateList
-        );
+                estimateList);
     }
 
     private ProjectType parseProjectType(Long projectTypeId) {
@@ -114,11 +111,19 @@ public class ProjectService {
     }
 
     private Role parseRole(String roleId) {
-        try {
-            return Role.valueOf(roleId.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new OffException(ResponseCode.INVALID_ROLE);
-        }
+        return switch (roleId.toLowerCase()) {
+            case "planner" -> Role.PM;
+            case "developer" -> Role.DEV;
+            case "designer" -> Role.DES;
+            case "marketer" -> Role.MAR;
+            default -> {
+                try {
+                    yield Role.valueOf(roleId.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    throw new OffException(ResponseCode.INVALID_ROLE);
+                }
+            }
+        };
     }
 
     private String generateServiceSummary(String description, String requirement) {
@@ -151,6 +156,33 @@ public class ProjectService {
         } catch (Exception e) {
             log.error("Gemini 서비스 요약 생성 실패: {}", e.getMessage(), e);
             return DEFAULT_SERVICE_SUMMARY_TEMPLATE;
+        }
+    }
+
+    private LocalDate estimateEndDate(LocalDate startDate, String description, String requirement) {
+        String prompt = """
+                당신은 IT 프로젝트 일정 산정 전문가입니다.
+                아래 프로젝트 정보를 바탕으로, 시작일로부터 프로젝트 완료까지 필요한 예상 기간을 **일(day) 단위 숫자만** 답해주세요.
+                예시: 90
+
+                [시작일]
+                %s
+
+                [서비스 설명]
+                %s
+
+                [요구사항]
+                %s
+                """.formatted(startDate.format(END_DATE_FORMATTER), description, requirement);
+
+        try {
+            String result = geminiService.generateText(prompt);
+            int days = Integer.parseInt(result.replaceAll("[^0-9]", ""));
+            if (days < 7) days = 30;
+            return startDate.plusDays(days);
+        } catch (Exception e) {
+            log.error("Gemini 마감일 산정 실패: {}", e.getMessage(), e);
+            return startDate.plusDays(30);
         }
     }
 
