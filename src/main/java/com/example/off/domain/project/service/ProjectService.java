@@ -17,7 +17,8 @@ import com.example.off.domain.role.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -27,7 +28,6 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class ProjectService {
     private static final DateTimeFormatter END_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
@@ -35,53 +35,65 @@ public class ProjectService {
     private final PartnerRecruitRepository partnerRecruitRepository;
     private final MemberRepository memberRepository;
     private final GeminiService geminiService;
+    private final PlatformTransactionManager transactionManager;
 
-    @Transactional
     public CreateProjectResponse createProject(Long memberId, CreateProjectRequest request) {
+        // 1. 검증 및 데이터 조회
         Member creator = memberRepository.findById(memberId)
                 .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
-
         ProjectType projectType = parseProjectType(request.getProjectTypeId());
+
+        List<RecruitmentInfo> recruitments = new ArrayList<>();
+        for (CreateProjectRequest.RecruitmentRequest r : request.getRecruitmentList()) {
+            Role role = parseRole(r.getRoleId());
+            List<Member> candidates = memberRepository.findAllByRole(role);
+            recruitments.add(new RecruitmentInfo(role, r.getCount(), candidates));
+        }
+
+        // 2. 외부 API 호출 (트랜잭션 밖 — DB 커넥션 점유 없음)
+        String serviceSummary = generateServiceSummary(request.getDescription(), request.getRequirement());
+        for (RecruitmentInfo info : recruitments) {
+            info.cost = estimateCostPerRole(info.role, request.getDescription(), request.getRequirement());
+        }
+
+        // 3. 견적 계산
+        int totalEstimate = recruitments.stream()
+                .mapToInt(r -> r.cost * r.count)
+                .sum();
 
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = startDate.plusDays(30);
 
-        Project project = new Project(
-                request.getName(),
-                request.getDescription(),
-                request.getRequirement(),
-                0L,
-                startDate,
-                endDate,
-                projectType,
-                creator
-        );
-        projectRepository.save(project);
+        // 4. DB 저장 (짧은 트랜잭션)
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            Project project = new Project(
+                    request.getName(),
+                    request.getDescription(),
+                    request.getRequirement(),
+                    (long) totalEstimate,
+                    startDate,
+                    endDate,
+                    projectType,
+                    creator
+            );
+            projectRepository.save(project);
 
-        List<String> recruitmentRoles = new ArrayList<>();
-        List<CreateProjectResponse.EstimateResponse> estimateList = new ArrayList<>();
+            for (RecruitmentInfo info : recruitments) {
+                partnerRecruitRepository.save(
+                        new PartnerRecruit(project, info.role, info.count, RecruitStatus.OPEN)
+                );
+            }
+        });
 
-        for (CreateProjectRequest.RecruitmentRequest recruitment : request.getRecruitmentList()) {
-            Role role = parseRole(recruitment.getRoleId());
-            recruitmentRoles.add(role.name());
+        // 5. 응답 구성
+        List<String> recruitmentRoles = recruitments.stream()
+                .map(r -> r.role.name())
+                .toList();
 
-            PartnerRecruit partnerRecruit = new PartnerRecruit(project, role, recruitment.getCount(), RecruitStatus.OPEN);
-            partnerRecruitRepository.save(partnerRecruit);
-
-            List<Member> candidateMembers = memberRepository.findAllByRole(role);
-
-            int costPerPerson = estimateCostPerRole(role, request.getDescription(), request.getRequirement());
-
-            estimateList.add(CreateProjectResponse.EstimateResponse.of(
-                    role.name(), costPerPerson, recruitment.getCount(), candidateMembers
-            ));
-        }
-
-        int totalEstimate = estimateList.stream()
-                .mapToInt(e -> e.getCost() * e.getCount())
-                .sum();
-
-        String serviceSummary = generateServiceSummary(request.getDescription(), request.getRequirement());
+        List<CreateProjectResponse.EstimateResponse> estimateList = recruitments.stream()
+                .map(r -> CreateProjectResponse.EstimateResponse.of(
+                        r.role.name(), r.cost, r.count, r.candidates))
+                .toList();
 
         return new CreateProjectResponse(
                 projectType.getDisplayName(),
@@ -161,6 +173,19 @@ public class ProjectService {
         } catch (Exception e) {
             log.error("Gemini 비용 산정 실패 ({}): {}", role.name(), e.getMessage(), e);
             return 0;
+        }
+    }
+
+    private static class RecruitmentInfo {
+        final Role role;
+        final int count;
+        final List<Member> candidates;
+        int cost;
+
+        RecruitmentInfo(Role role, int count, List<Member> candidates) {
+            this.role = role;
+            this.count = count;
+            this.candidates = candidates;
         }
     }
 

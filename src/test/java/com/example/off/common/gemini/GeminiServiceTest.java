@@ -1,5 +1,6 @@
 package com.example.off.common.gemini;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,6 +11,7 @@ class GeminiServiceTest {
     @Autowired
     private GeminiService geminiService;
 
+    @Disabled("외부 Gemini API 의존 — GEMINI_API_KEY 환경변수 설정 후 수동 실행")
     @Test
     void 프로젝트_서비스_요약_생성_테스트() {
         String prompt = """
