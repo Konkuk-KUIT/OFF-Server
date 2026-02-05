@@ -80,4 +80,16 @@ public class Project {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_id", nullable = false)
     private Member creator;
+
+    public Project(String name, String description, String requirement, Long estimation,
+                   LocalDate start, LocalDate end, ProjectType projectType, Member creator) {
+        this.name = name;
+        this.description = description;
+        this.requirement = requirement;
+        this.estimation = estimation;
+        this.start = start;
+        this.end = end;
+        this.projectType = projectType;
+        this.creator = creator;
+    }
 }
