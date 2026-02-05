@@ -78,6 +78,7 @@ public class Member {
     @OneToMany(mappedBy = "member")
     private List<Portfolio> portfolios = new ArrayList<>();
 
+    //Todo: memberRoles -> memberRole 수정
     @OneToMany(mappedBy = "member")
     private List<MemberRole> memberRoles = new ArrayList<>();
 
