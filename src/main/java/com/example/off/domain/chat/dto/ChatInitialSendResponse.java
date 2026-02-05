@@ -16,12 +16,12 @@ public class ChatInitialSendResponse {
     private LocalDateTime createdAt;
     private boolean isMine;
 
-    public static ChatInitialSendResponse of(ChatRoom room, Message message) {
+    public static ChatInitialSendResponse of(ChatRoom room, SendMessageResponse response) {
         return new ChatInitialSendResponse(
                 room.getId(),
-                message.getId(),
-                message.getContent(),
-                message.getCreatedAt(),
+                response.getId(),
+                response.getContent(),
+                response.getCreatedAt(),
                 true
         );
     }
