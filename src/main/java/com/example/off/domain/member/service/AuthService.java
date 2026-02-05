@@ -8,7 +8,7 @@ import com.example.off.domain.member.dto.LoginRequest;
 import com.example.off.domain.member.dto.LoginResponse;
 import com.example.off.domain.member.dto.SignupRequest;
 import com.example.off.domain.member.repository.MemberRepository;
-import com.example.off.jwt.JwtTokenService;
+import com.example.off.jwt.JwtTokenProvider;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AuthService {
     public final MemberRepository memberRepository;
-    private final JwtTokenService jwtTokenService;
+    private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
@@ -70,7 +70,7 @@ public class AuthService {
         }
 
         //jwt 토큰 발급
-        String accessToken = jwtTokenService.createToken(
+        String accessToken = jwtTokenProvider.createToken(
                 member.getId().toString(),
                 member.getRole().toString()
         );
