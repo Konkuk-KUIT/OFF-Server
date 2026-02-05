@@ -1,5 +1,6 @@
 package com.example.off.domain.member.service;
 
+import com.example.off.common.exception.OffException;
 import com.example.off.common.response.ResponseCode;
 import com.example.off.domain.member.Member;
 import com.example.off.domain.member.Portfolio;
@@ -25,7 +26,7 @@ public class AuthService {
     public void signup(@Valid SignupRequest signupRequest) {
         //이메일 중복 검증
         if(memberRepository.existsByEmail(signupRequest.getEmail())) {
-            throw new DuplicateEmailException();
+            throw new OffException(ResponseCode.DUPLICATE_EMAIL);
         }
 
         //pw 암호화
@@ -58,14 +59,14 @@ public class AuthService {
 
     @Transactional
     public LoginResponse login(@Valid LoginRequest loginRequest){
-        Member member = memberRepository.findByEmail(loginRequest.email()).orElseThrow(AuthenticationFailedException::new);
+        Member member = memberRepository.findByEmail(loginRequest.email()).orElseThrow(()->new OffException(ResponseCode.INVALID_LOGIN_CREDENTIALS));
 
         //비밀번호 검증
         if(!passwordEncoder.matches(
                 loginRequest.password(),
                 member.getPassword()
         )) {
-            throw new AuthenticationFailedException();
+            throw new OffException(ResponseCode.INVALID_LOGIN_CREDENTIALS);
         }
 
         //jwt 토큰 발급
@@ -74,16 +75,5 @@ public class AuthService {
                 member.getRole().toString()
         );
         return new LoginResponse(accessToken, "Bearer");
-    }
-
-
-    private static class DuplicateEmailException extends RuntimeException {
-        public DuplicateEmailException() {
-            super(ResponseCode.DUPLICATE_EMAIL.getMessage());
-        }
-    }
-
-    private static class AuthenticationFailedException extends RuntimeException{
-        public AuthenticationFailedException() {super(ResponseCode.INVALID_LOGIN_CREDENTIALS.getMessage());}
     }
 }
