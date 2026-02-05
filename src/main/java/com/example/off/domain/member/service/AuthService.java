@@ -32,12 +32,12 @@ public class AuthService {
         String encodedPassword = passwordEncoder.encode(signupRequest.getPassword());
 
         //회원 생성
-        //Todo: role 추가
         Member member = Member.of(
                 signupRequest.getName(),
                 signupRequest.getEmail(),
                 encodedPassword,
                 signupRequest.getNickname(),
+                signupRequest.getRole(),
                 signupRequest.getSelfIntroduction(),
                 signupRequest.getBirth(),
                 signupRequest.getProjectCount(),
@@ -69,10 +69,9 @@ public class AuthService {
         }
 
         //jwt 토큰 발급
-        //Todo: getMemberRoles 수정
         String accessToken = jwtTokenService.createToken(
                 member.getId().toString(),
-                member.getMemberRoles().getFirst().toString()
+                member.getRole().toString()
         );
         return new LoginResponse(accessToken, "Bearer");
     }

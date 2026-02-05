@@ -12,6 +12,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -52,8 +53,12 @@ public class Member {
     @Column(nullable = false)
     private LocalDate birth;
 
+    @Setter
     @Column(nullable = false, length = 500)
     private String profileImage;
+
+    @Column(nullable = false)
+    private Role role;
 
     @Column(nullable = false)
     private Boolean isWorking;
@@ -98,22 +103,23 @@ public class Member {
     private List<Project> projects = new ArrayList<>();
 
     private Member(
-            String name, String email, String password, String nickname, String selfIntroduction, LocalDate birth, ProjectCountType projectCountType, String profileImage
+            String name, String email, String password, String nickname, Role role, String selfIntroduction, LocalDate birth, ProjectCountType projectCountType, String profileImage
     ) {
         this.name = name;
         this.email = email;
         this.password = password;
         this.nickname = nickname;
+        this.role = role;
         this.selfIntroduction = selfIntroduction;
         this.birth = birth;
         this.isWorking = false;
         this.projectCountType = projectCountType;
-        this.profileImage = null;
+        this.profileImage = "PROFILEIMAGE";
     }
 
-    public static Member of(String name, String email, String password, String nickname, String selfIntroduction, LocalDate birth, ProjectCountType projectCountType, String profileImage) {
+    public static Member of(String name, String email, String password, String nickname, Role role, String selfIntroduction, LocalDate birth, ProjectCountType projectCountType, String profileImage) {
         return new Member(
-                name, email, password, nickname, selfIntroduction, birth, projectCountType, profileImage
+                name, email, password, nickname, role, selfIntroduction, birth, projectCountType, profileImage
         );
     }
 
@@ -121,7 +127,4 @@ public class Member {
         this.portfolios.add(portfolio);
     }
 
-    public void setProfileImage(String profileImage) {
-        this.profileImage = profileImage;
-    }
 }
