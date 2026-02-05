@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
-public class JwtTokenService {
+public class JwtTokenProvider {
     //secret key 주입
     @Value("${jwt.secret}")
     private String secret;

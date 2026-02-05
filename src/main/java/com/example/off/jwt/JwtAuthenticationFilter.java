@@ -9,10 +9,10 @@ import java.io.IOException;
 
 public class JwtAuthenticationFilter implements Filter {
 
-    private final JwtTokenService jwtTokenService;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public JwtAuthenticationFilter(JwtTokenService jwtTokenService) {
-        this.jwtTokenService = jwtTokenService;
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @Override
@@ -31,7 +31,7 @@ public class JwtAuthenticationFilter implements Filter {
 
         try {
             String token = header.substring(7);
-            Claims claims = jwtTokenService.parseToken(token);
+            Claims claims = jwtTokenProvider.parseToken(token);
 
             request.setAttribute("userId", claims.getSubject());
             request.setAttribute("role", claims.get("role"));
