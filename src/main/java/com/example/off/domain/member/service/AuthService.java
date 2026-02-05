@@ -32,6 +32,7 @@ public class AuthService {
         String encodedPassword = passwordEncoder.encode(signupRequest.getPassword());
 
         //회원 생성
+        //Todo: role 추가
         Member member = Member.of(
                 signupRequest.getName(),
                 signupRequest.getEmail(),

@@ -1,45 +1,44 @@
 package com.example.off.jwt;
 
 import io.jsonwebtoken.Claims;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
+import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@Component
-@RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter
-{
+public class JwtAuthenticationFilter implements Filter {
+
     private final JwtTokenService jwtTokenService;
 
+    public JwtAuthenticationFilter(JwtTokenService jwtTokenService) {
+        this.jwtTokenService = jwtTokenService;
+    }
+
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
+        HttpServletRequest request = (HttpServletRequest) req;
+        HttpServletResponse response = (HttpServletResponse) res;
+
+        System.out.println("JWT FILTER: "+request.getRequestURI());
+
         String header = request.getHeader("Authorization");
 
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-
-            try {
-                Claims claims = jwtTokenService.parseToken(token);
-
-                //Todo: attribute 수정
-                request.setAttribute("userId", claims.get("id", Long.class));
-                request.setAttribute("role", claims.get("role", String.class));
-
-            } catch (Exception e) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
-            }
+        if (header == null || !header.startsWith("Bearer ")) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         }
-        filterChain.doFilter(request, response);
+
+        try {
+            String token = header.substring(7);
+            Claims claims = jwtTokenService.parseToken(token);
+
+            request.setAttribute("userId", claims.getSubject());
+            request.setAttribute("role", claims.get("role"));
+
+            chain.doFilter(request, response);
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        }
     }
 }

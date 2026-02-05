@@ -26,6 +26,9 @@ public class JwtTokenService {
 
     @PostConstruct
     public void init() {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("jwt.secret is missing");
+        }
         key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
