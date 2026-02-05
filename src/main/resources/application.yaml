@@ -4,3 +4,6 @@ spring:
 springdoc:
   api-docs:
     version: openapi_3_0  # 3.1.0 대신 3.0.x 계열을 사용하도록 강제함
+jwt:
+    secret: ${JWT_SECRET}
+    expire-ms: 3600000

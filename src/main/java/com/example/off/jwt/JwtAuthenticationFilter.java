@@ -15,6 +15,8 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter
 {
+    private final JwtTokenService jwtTokenService;
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -27,8 +29,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
             String token = header.substring(7);
 
             try {
-                Claims claims = JwtTokenService.parseToken(token);
+                Claims claims = jwtTokenService.parseToken(token);
 
+                //Todo: attribute 수정
                 request.setAttribute("userId", claims.get("id", Long.class));
                 request.setAttribute("role", claims.get("role", String.class));
 

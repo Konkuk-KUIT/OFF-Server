@@ -3,7 +3,8 @@ package com.example.off.jwt;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import lombok.AllArgsConstructor;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -12,17 +13,26 @@ import java.util.Date;
 
 @Component
 public class JwtTokenService {
-    //secret key 생성
-    private static final String SECRET_KEY = "very-secret-key-please-change";
-    private static final long EXPIRE_MS = 1000 * 60 * 60; // 1시간
+    //secret key 주입
+    @Value("${jwt.secret}")
+    private String secret;
 
-    private static final SecretKey key =
-            Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+    //expire 시간 설정
+    @Value("${jwt.expire-ms}")
+    private long expireMs;
+
+    //secret key 생성
+    private SecretKey key;
+
+    @PostConstruct
+    public void init() {
+        key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
 
     //JWT 생성
     public String createToken(String userId, String role) {
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + EXPIRE_MS);
+        Date expiry = new Date(now.getTime() + expireMs);
 
         return Jwts.builder()
                 .subject(userId)
@@ -33,7 +43,7 @@ public class JwtTokenService {
                 .compact();
     }
 
-    public static Claims parseToken(String token) {
+    public Claims parseToken(String token) {
         return Jwts.parser()
                 .verifyWith(key)
                 .build()
