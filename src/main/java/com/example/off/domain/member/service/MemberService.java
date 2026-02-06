@@ -3,7 +3,7 @@ package com.example.off.domain.member.service;
 import com.example.off.common.exception.OffException;
 import com.example.off.common.response.ResponseCode;
 import com.example.off.domain.member.Member;
-import com.example.off.domain.member.dto.GetProfileResponse;
+import com.example.off.domain.member.dto.ProfileResponse;
 import com.example.off.domain.member.repository.MemberRepository;
 import com.example.off.domain.projectMember.ProjectMember;
 import com.example.off.domain.projectMember.repository.ProjectMemberRepository;
@@ -22,14 +22,14 @@ public class MemberService {
     private final ProjectMemberRepository projectMemberRepository;
 
     @Transactional(readOnly = true)
-    public GetProfileResponse getMyProfile(Long memberId){
+    public ProfileResponse getMyProfile(Long memberId){
         //회원 찾기
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(()->new OffException(ResponseCode.MEMBER_NOT_FOUND));
 
         //진행중인 project 찾기
         if (!Boolean.TRUE.equals(member.getIsWorking()))
-                return GetProfileResponse.of(member, null);
+                return ProfileResponse.of(member, null);
 
         //진행 중인 경우 분기 처리
         List<ProjectMember> projectMembers =
@@ -41,6 +41,6 @@ public class MemberService {
         }
 
         String projectName = projectMembers.getFirst().getProject().getName();
-        return GetProfileResponse.of(member, projectName);
+        return ProfileResponse.of(member, projectName);
     }
 }
