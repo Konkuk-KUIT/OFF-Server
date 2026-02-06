@@ -41,9 +41,6 @@ public class Member {
     @Column(nullable = false)
     private String password;
 
-//    @Column(nullable = false, unique = true, length = 20)
-//    private String phoneNumber;
-
     @Column(nullable = false, unique = true, length = 50)
     private String nickname;
 

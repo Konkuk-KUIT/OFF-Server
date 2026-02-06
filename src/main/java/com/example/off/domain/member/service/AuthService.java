@@ -7,6 +7,7 @@ import com.example.off.domain.member.Portfolio;
 import com.example.off.domain.member.dto.LoginRequest;
 import com.example.off.domain.member.dto.LoginResponse;
 import com.example.off.domain.member.dto.SignupRequest;
+import com.example.off.domain.member.dto.SignupResponse;
 import com.example.off.domain.member.repository.MemberRepository;
 import com.example.off.jwt.JwtTokenProvider;
 import jakarta.validation.Valid;
@@ -23,7 +24,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public void signup(@Valid SignupRequest signupRequest) {
+    public SignupResponse signup(@Valid SignupRequest signupRequest) {
         //이메일 중복 검증
         if(memberRepository.existsByEmail(signupRequest.getEmail())) {
             throw new OffException(ResponseCode.DUPLICATE_EMAIL);
@@ -54,7 +55,8 @@ public class AuthService {
         }
 
         //DB 저장
-        memberRepository.save(member);
+        Member savedMember = memberRepository.save(member);
+        return SignupResponse.of(savedMember);
     }
 
     @Transactional
@@ -74,6 +76,6 @@ public class AuthService {
                 member.getId().toString(),
                 member.getRole().toString()
         );
-        return new LoginResponse(accessToken, "Bearer");
+        return LoginResponse.of(accessToken, "Bearer");
     }
 }

@@ -8,6 +8,7 @@ import com.example.off.common.swagger.SwaggerResponseDescription;
 import com.example.off.domain.member.dto.LoginRequest;
 import com.example.off.domain.member.dto.LoginResponse;
 import com.example.off.domain.member.dto.SignupRequest;
+import com.example.off.domain.member.dto.SignupResponse;
 import com.example.off.domain.member.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -26,11 +27,11 @@ public class AuthController {
     @Operation(summary = "회원가입", description = "이메일, 비밀번호 등을 이용해 회원가입을 진행합니다.")
     @PostMapping("/signup")
     @CustomExceptionDescription(SwaggerResponseDescription.SIGNUP)
-    public BaseResponse<Void> signup(
+    public BaseResponse<SignupResponse> signup(
             @RequestBody @Valid SignupRequest signupRequest
     ){
-        authService.signup(signupRequest);
-        return BaseResponse.ok();
+        SignupResponse data =  authService.signup(signupRequest);
+        return BaseResponse.ok(data);
     }
 
     @Operation(summary = "로그인", description = "이메일과 비밀번호를 통해 로그인을 하여 토큰을 발급합니다.")

@@ -8,4 +8,8 @@ import lombok.Getter;
 public class LoginResponse {
     private String accessToken;
     private String tokenType;
+
+    public static LoginResponse of(String accessToken, String tokenType){
+        return new LoginResponse(accessToken, tokenType);
+    }
 }
