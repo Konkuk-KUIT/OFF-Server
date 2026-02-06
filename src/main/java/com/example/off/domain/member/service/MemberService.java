@@ -44,7 +44,7 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
-    public MyProjectsResponse getMyProjects(Long mem    berId){
+    public MyProjectsResponse getMyProjects(Long memberId){
         Member member = findMember(memberId);
         //참여했던 플젝 list
         List<ProjectMember> projectMembers = findMyProjects(memberId);
