@@ -39,4 +39,14 @@ public class Portfolio {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
+
+    private Portfolio(String description, String link, Member member) {
+        this.description = description;
+        this.link = link;
+        this.member = member;
+    }
+
+    public static Portfolio of(String description, String link, Member member){
+        return new Portfolio(description, link, member);
+    }
 }

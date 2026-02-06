@@ -1,6 +1,7 @@
 package com.example.off.common.swagger;
 
 import com.example.off.common.response.ResponseCode;
+import io.swagger.v3.oas.models.links.Link;
 import lombok.Getter;
 
 import java.util.HashSet;
@@ -40,6 +41,14 @@ public enum SwaggerResponseDescription {
     CREATE_ROOM_AND_SEND_MESSAGES(new HashSet<>(Set.of(
             MEMBER_NOT_FOUND,
             OPPONENT_NOT_FOUND
+    ))),
+
+    SIGNUP(new LinkedHashSet<>(Set.of(
+            DUPLICATE_EMAIL
+    ))),
+
+    LOGIN(new LinkedHashSet<>(Set.of(
+        INVALID_LOGIN_CREDENTIALS
     ))),
 
 
