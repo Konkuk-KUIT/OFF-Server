@@ -3,6 +3,7 @@ package com.example.off.domain.member.service;
 import com.example.off.common.exception.OffException;
 import com.example.off.common.response.ResponseCode;
 import com.example.off.domain.member.Member;
+import com.example.off.domain.member.dto.MyProjectsResponse;
 import com.example.off.domain.member.dto.ProfileResponse;
 import com.example.off.domain.member.repository.MemberRepository;
 import com.example.off.domain.projectMember.ProjectMember;
@@ -43,4 +44,21 @@ public class MemberService {
         String projectName = projectMembers.getFirst().getProject().getName();
         return ProfileResponse.of(member, projectName);
     }
+
+    @Transactional(readOnly = true)
+    public MyProjectsResponse getMyProjects(Long memberId){
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(()->new OffException(ResponseCode.MEMBER_NOT_FOUND));
+
+        //참여했던 플젝 list
+        List<ProjectMember> projectMembers =
+                projectMemberRepository.findAllByMember_Id(memberId);
+
+        return MyProjectsResponse.from(projectMembers);
+    }
+
+    //memberId로 진행중인 project 리스트 찾아오기
+//    public List<ProjectMember> findMyProjects(Long memberId) {
+//        return null;
+//    }
 }

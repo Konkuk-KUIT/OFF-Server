@@ -20,12 +20,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class MemberController {
     private final MemberService memberService;
 
-    @Operation(summary = "내 프로필 조회", description = "accessToken 을 기반으로 현재 로그인한 회원의 정보를 불러옵니다.")
+    @Operation(summary = "내 프로필 조회 및 수정",
+            description = "accessToken 을 기반으로 현재 로그인한 회원의 정보를 불러옵니다.")
     @GetMapping("/me")
     @CustomExceptionDescription(SwaggerResponseDescription.GET_MY_PROFILE)
-    public BaseResponse<ProfileResponse> getMyProfile(HttpServletRequest request){
+    public BaseResponse<ProfileResponse> getMyProfile(HttpServletRequest request) {
         Long memberId = (Long) request.getAttribute("memberId");
-        if (memberId == null ) {
+        if (memberId == null) {
             throw new OffException(ResponseCode.INVALID_TOKEN);
         }
 
@@ -33,13 +34,16 @@ public class MemberController {
         return BaseResponse.ok(data);
     }
 
-    @Operation(summary = "내 프로필 수정하기")
-    @GetMapping("/me")
-    public String updateMyProfile(){
-        return "string";
-    }
+//    @Operation(summary = "내 프로필 수정하기")
+//    //patch
+//    public String updateMyProfile() {
+//        return "string";
+//    }
 
-    public String getJoinedProjects() {
+    @Operation(summary = "참여한 프로젝트 조회",
+            description = "현재 로그인한 회원이 참여했던 프로젝트 정보를 불러옵니다.")
+    @GetMapping("/me/projects")
+    public String getMyProjects() {
         return "string";
     }
 }
