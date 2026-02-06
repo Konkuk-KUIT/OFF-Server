@@ -25,16 +25,14 @@ public class MemberService {
     @Transactional(readOnly = true)
     public ProfileResponse getMyProfile(Long memberId){
         //회원 찾기
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(()->new OffException(ResponseCode.MEMBER_NOT_FOUND));
+        Member member = findMember(memberId);
 
         //진행중인 project 찾기
         if (!Boolean.TRUE.equals(member.getIsWorking()))
-                return ProfileResponse.of(member, null);
+            return ProfileResponse.of(member, null);
 
         //진행 중인 경우 분기 처리
-        List<ProjectMember> projectMembers =
-                projectMemberRepository.findAllByMember_Id(memberId); //memberId 가 참가하는 모든 플젝명
+        List<ProjectMember> projectMembers = findMyProjects(memberId);
 
         if (projectMembers.isEmpty()) { //isWorking==true 인데 projectMember 가 없는 경우.
             log.error("회원 {}의 프로젝트 진행 여부와 프로젝트 정보가 일치하지 않습니다.", memberId    );
@@ -46,19 +44,22 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
-    public MyProjectsResponse getMyProjects(Long memberId){
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(()->new OffException(ResponseCode.MEMBER_NOT_FOUND));
-
+    public MyProjectsResponse getMyProjects(Long mem    berId){
+        Member member = findMember(memberId);
         //참여했던 플젝 list
-        List<ProjectMember> projectMembers =
-                projectMemberRepository.findAllByMember_Id(memberId);
+        List<ProjectMember> projectMembers = findMyProjects(memberId);
 
         return MyProjectsResponse.from(projectMembers);
     }
 
+    //memberId로 회원찾기
+    public Member findMember(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(()->new OffException(ResponseCode.MEMBER_NOT_FOUND));
+    }
+
     //memberId로 진행중인 project 리스트 찾아오기
-//    public List<ProjectMember> findMyProjects(Long memberId) {
-//        return null;
-//    }
+    public List<ProjectMember> findMyProjects(Long memberId) {
+        return projectMemberRepository.findAllByMember_Id(memberId);
+    }
 }

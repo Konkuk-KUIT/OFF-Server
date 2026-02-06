@@ -5,6 +5,7 @@ import com.example.off.common.exception.OffException;
 import com.example.off.common.response.BaseResponse;
 import com.example.off.common.response.ResponseCode;
 import com.example.off.common.swagger.SwaggerResponseDescription;
+import com.example.off.domain.member.dto.MyProjectsResponse;
 import com.example.off.domain.member.dto.ProfileResponse;
 import com.example.off.domain.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,10 +26,7 @@ public class MemberController {
     @GetMapping("/me")
     @CustomExceptionDescription(SwaggerResponseDescription.GET_MY_PROFILE)
     public BaseResponse<ProfileResponse> getMyProfile(HttpServletRequest request) {
-        Long memberId = (Long) request.getAttribute("memberId");
-        if (memberId == null) {
-            throw new OffException(ResponseCode.INVALID_TOKEN);
-        }
+        Long memberId = getMemberId(request);
 
         ProfileResponse data = memberService.getMyProfile(memberId);
         return BaseResponse.ok(data);
@@ -43,7 +41,19 @@ public class MemberController {
     @Operation(summary = "참여한 프로젝트 조회",
             description = "현재 로그인한 회원이 참여했던 프로젝트 정보를 불러옵니다.")
     @GetMapping("/me/projects")
-    public String getMyProjects() {
-        return "string";
+    @CustomExceptionDescription(SwaggerResponseDescription.GET_MY_PROJECTS)
+    public BaseResponse<MyProjectsResponse> getMyProjects(HttpServletRequest request) {
+        Long memberId = getMemberId(request);
+
+        MyProjectsResponse data = memberService.getMyProjects(memberId);
+        return BaseResponse.ok(data);
+    }
+
+    private Long getMemberId (HttpServletRequest req){
+        Object memberId = (Long) req.getAttribute("memberId");
+        if (!(memberId instanceof Long id)) { //변수 선언 동시에 처리
+            throw new OffException(ResponseCode.INVALID_TOKEN);
+        }
+        return id;
     }
 }

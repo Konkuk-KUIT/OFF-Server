@@ -57,6 +57,11 @@ public enum SwaggerResponseDescription {
             INTERNAL_SERVER_ERROR
     ))),
 
+    GET_MY_PROJECTS(new LinkedHashSet<>(Set.of(
+            INVALID_TOKEN,
+            MEMBER_NOT_FOUND
+    ))),
+
 
 
     DEFAULT(new LinkedHashSet<>());
