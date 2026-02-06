@@ -1,6 +1,25 @@
 spring:
   application:
     name: off
+  datasource:
+    # jdbc:postgresql://[엔드포인트주소]:5432/[DB이름]
+    url: jdbc:postgresql://${DB_ENDPOINT}:5432/postgres
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  sql:
+    init:
+      mode: always
+  jpa:
+    defer-datasource-initialization: true
+    hibernate:
+      # create: 매번 실행할 때마다 테이블 다 지우고 새로 만듦 (주의!)
+      # update: 변경된 부분만 반영 (개발할 때 추천)
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true # 로그에 SQL 예쁘게 출력
+        show_sql: true   # 실행되는 SQL 보여주기
 springdoc:
   api-docs:
     version: openapi_3_0  # 3.1.0 대신 3.0.x 계열을 사용하도록 강제함

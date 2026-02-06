@@ -1,0 +1,26 @@
+### 1. [사전 작업] 테스트용 회원 데이터 확인
+# 회원가입 API가 아직 없으므로, data.sql로 시드 데이터가 자동 삽입됩니다.
+# 앱 실행 후 바로 프로젝트 생성 테스트가 가능합니다.
+
+### 2. 프로젝트 생성 (memberId는 쿼리 파라미터)
+# memberId 기본값은 1 (data.sql에서 생성한 테스트 유저)
+POST http://localhost:8080/projects/create?memberId=1
+Content-Type: application/json
+
+{
+  "name": "성수동 팝업스토어 폐기물 관리 서비스",
+  "description": "성수동 팝업스토어들이 철거될 때 나오는 막대한 폐기물을 수거하고 재활용 업체와 매칭해주는 친환경 플랫폼입니다.",
+  "projectTypeId": 1,
+  "requirement": "폐기물 사진을 찍으면 AI가 종류를 인식해서 견적을 내주는 기능이 핵심입니다. 수거 업체용 어드민 페이지도 필요해요.",
+  "recruitmentList": [
+    {
+      "roleId": "developer",
+      "count": 2
+    },
+    {
+      "roleId": "designer",
+      "count": 1
+    }
+  ]
+}
+
