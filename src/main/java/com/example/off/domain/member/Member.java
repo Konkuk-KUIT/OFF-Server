@@ -75,10 +75,6 @@ public class Member {
     @OneToMany(mappedBy = "member")
     private List<Portfolio> portfolios = new ArrayList<>();
 
-    //Todo: memberRoles -> memberRole 수정
-    @OneToMany(mappedBy = "member")
-    private List<MemberRole> memberRoles = new ArrayList<>();
-
     @OneToMany(mappedBy = "member")
     private List<ProjectMember> projectMembers = new ArrayList<>();
 
@@ -112,7 +108,7 @@ public class Member {
         this.birth = birth;
         this.isWorking = false;
         this.projectCountType = projectCountType;
-        this.profileImage = "PROFILEIMAGE";
+        this.profileImage = profileImage;
     }
 
     public static Member of(String name, String email, String password, String nickname, Role role, String selfIntroduction, LocalDate birth, ProjectCountType projectCountType, String profileImage) {
