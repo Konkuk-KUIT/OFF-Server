@@ -51,6 +51,13 @@ public enum SwaggerResponseDescription {
         INVALID_LOGIN_CREDENTIALS
     ))),
 
+    GET_MY_PROFILE(new LinkedHashSet<>(Set.of(
+            INVALID_TOKEN,
+            MEMBER_NOT_FOUND,
+            INTERNAL_SERVER_ERROR
+    ))),
+
+
 
     DEFAULT(new LinkedHashSet<>());
 
