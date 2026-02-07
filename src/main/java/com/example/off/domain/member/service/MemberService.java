@@ -3,8 +3,11 @@ package com.example.off.domain.member.service;
 import com.example.off.common.exception.OffException;
 import com.example.off.common.response.ResponseCode;
 import com.example.off.domain.member.Member;
+import com.example.off.domain.member.Portfolio;
 import com.example.off.domain.member.dto.MyProjectsResponse;
+import com.example.off.domain.member.dto.PortfolioRequest;
 import com.example.off.domain.member.dto.ProfileResponse;
+import com.example.off.domain.member.dto.UpdateProfileRequest;
 import com.example.off.domain.member.repository.MemberRepository;
 import com.example.off.domain.projectMember.ProjectMember;
 import com.example.off.domain.projectMember.repository.ProjectMemberRepository;
@@ -50,6 +53,43 @@ public class MemberService {
         List<ProjectMember> projectMembers = findMyProjects(memberId);
 
         return MyProjectsResponse.from(projectMembers);
+    }
+
+    public void updateProfile(Long memberId, UpdateProfileRequest updateReq){
+        Member member = findMember(memberId);
+
+        //Todo: 리팩토링 필요
+        //nickname 수정
+        //빈 문자열 금지, 중복 허용하지 않음
+        if (updateReq.getNickname()!=null && !updateReq.getNickname().isBlank()){
+            if (memberRepository.existsByNickname(updateReq.getNickname()))
+                throw new OffException(ResponseCode.DUPLICATE_NICKNAME);
+            member.updateNickname(updateReq.getNickname());
+        }
+
+        //프로젝트 경험 횟수 수정
+        if (updateReq.getProjectCountType()!=null)
+            member.updateProjectCount(updateReq.getProjectCountType());
+
+        //포트폴리오 수정
+        if (updateReq.getPortfolioRequests()!=null){
+            //기존 포폴 모두 삭제 후 새로 생성, 저장
+            member.getPortfolios().clear();
+
+            for (PortfolioRequest pr : updateReq.getPortfolioRequests()) {
+                Portfolio portfolio = Portfolio.of(
+                        pr.getDescription(),
+                        pr.getLink(),
+                        member
+                );
+                member.getPortfolios().add(portfolio);
+            }
+        }
+
+        //자기소개 수정 (빈 문자열 허용)
+        if (updateReq.getNickname()!=null){
+            member.updateIntroduction(updateReq.getSelfIntroduction());
+        }
     }
 
     //memberId로 회원찾기

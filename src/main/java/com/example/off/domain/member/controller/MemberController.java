@@ -7,13 +7,12 @@ import com.example.off.common.response.ResponseCode;
 import com.example.off.common.swagger.SwaggerResponseDescription;
 import com.example.off.domain.member.dto.MyProjectsResponse;
 import com.example.off.domain.member.dto.ProfileResponse;
+import com.example.off.domain.member.dto.UpdateProfileRequest;
 import com.example.off.domain.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/members")
@@ -32,11 +31,19 @@ public class MemberController {
         return BaseResponse.ok(data);
     }
 
-//    @Operation(summary = "내 프로필 수정하기")
-//    //patch
-//    public String updateMyProfile() {
-//        return "string";
-//    }
+    @Operation(summary = "내 프로필 수정하기")
+    @PatchMapping("/me")
+    //Todo: Swaggerdescription 설정
+    //header 와 body 모두 필요함
+    public String updateMyProfile(
+            HttpServletRequest request,
+            @RequestBody UpdateProfileRequest updateRequest
+            ) {
+        Long memberId = getMemberId(request);
+        memberService.updateProfile(memberId, updateRequest);
+
+        return "string";
+    }
 
     @Operation(summary = "참여한 프로젝트 조회",
             description = "현재 로그인한 회원이 참여했던 프로젝트 정보를 불러옵니다.")

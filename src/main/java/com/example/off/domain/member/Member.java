@@ -1,5 +1,7 @@
 package com.example.off.domain.member;
 
+import com.example.off.common.exception.OffException;
+import com.example.off.common.response.ResponseCode;
 import com.example.off.domain.chat.ChatRoomMember;
 import com.example.off.domain.chat.Message;
 import com.example.off.domain.notification.Notification;
@@ -121,4 +123,20 @@ public class Member {
         this.portfolios.add(portfolio);
     }
 
+    //Setter
+    public void updateNickname(String nickname) {
+        if (nickname.length() > 50)
+            throw new OffException(ResponseCode.INVALID_INPUT_VALUE);
+        this.nickname = nickname;
+    }
+
+    public void updateProjectCount(ProjectCountType count){
+        this.projectCountType = count;
+    }
+
+    public void updateIntroduction(String selfIntroduction) {
+        if (selfIntroduction.length() > 1000)
+            throw new OffException(ResponseCode.INVALID_INPUT_VALUE);
+        this.selfIntroduction = selfIntroduction;
+    }
 }

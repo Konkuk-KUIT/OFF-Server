@@ -38,12 +38,4 @@ public class SignupRequest {
     private ProjectCountType projectCount;
     private String selfIntroduction;
     private List<PortfolioRequest> portfolioList;
-
-    @Getter
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class PortfolioRequest {
-        private String description;
-        private String link;
-    }
 }
