@@ -1,0 +1,44 @@
+package com.example.off.domain.member.controller;
+
+
+import com.example.off.common.annotation.CustomExceptionDescription;
+import com.example.off.common.response.BaseResponse;
+import com.example.off.common.response.ResponseCode;
+import com.example.off.common.swagger.SwaggerResponseDescription;
+import com.example.off.domain.member.dto.LoginRequest;
+import com.example.off.domain.member.dto.LoginResponse;
+import com.example.off.domain.member.dto.SignupRequest;
+import com.example.off.domain.member.dto.SignupResponse;
+import com.example.off.domain.member.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/auth")
+@RequiredArgsConstructor
+public class AuthController {
+    private final AuthService authService;
+
+    @Operation(summary = "회원가입", description = "이메일, 비밀번호 등을 이용해 회원가입을 진행합니다.")
+    @PostMapping("/signup")
+    @CustomExceptionDescription(SwaggerResponseDescription.SIGNUP)
+    public BaseResponse<SignupResponse> signup(
+            @RequestBody @Valid SignupRequest signupRequest
+    ){
+        SignupResponse data =  authService.signup(signupRequest);
+        return BaseResponse.ok(data);
+    }
+
+    @Operation(summary = "로그인", description = "이메일과 비밀번호를 통해 로그인을 하여 토큰을 발급합니다.")
+    @PostMapping("/login")
+    @CustomExceptionDescription(SwaggerResponseDescription.LOGIN)
+    public BaseResponse<LoginResponse> login(@RequestBody @Valid LoginRequest loginRequest){
+        LoginResponse data = authService.login(loginRequest);
+        return BaseResponse.ok(data);
+    }
+}

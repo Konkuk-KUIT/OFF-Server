@@ -1,6 +1,7 @@
 package com.example.off.common.swagger;
 
 import com.example.off.common.response.ResponseCode;
+import io.swagger.v3.oas.models.links.Link;
 import lombok.Getter;
 
 import java.util.HashSet;
@@ -42,11 +43,21 @@ public enum SwaggerResponseDescription {
             OPPONENT_NOT_FOUND
     ))),
 
+
     CREATE_PROJECT(new HashSet<>(Set.of(
             MEMBER_NOT_FOUND,
             INVALID_PROJECT_TYPE,
             INVALID_ROLE
     ))),
+  
+    SIGNUP(new LinkedHashSet<>(Set.of(
+            DUPLICATE_EMAIL
+    ))),
+
+    LOGIN(new LinkedHashSet<>(Set.of(
+        INVALID_LOGIN_CREDENTIALS
+    ))),
+
 
     DEFAULT(new LinkedHashSet<>());
 

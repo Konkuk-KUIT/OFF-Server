@@ -3,6 +3,7 @@ package com.example.off.common.response;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
+import org.springframework.http.ResponseEntity;
 
 @Getter
 @JsonPropertyOrder({"success", "code", "message", "data"})
@@ -34,5 +35,9 @@ public class BaseResponse<T> {
 
     public static <T> BaseResponse<T> ok(T result) {
         return new BaseResponse<>(ResponseCode.SUCCESS, result);
+    }
+
+    public static BaseResponse<Void> ok() {
+        return new BaseResponse<>(ResponseCode.SUCCESS);
     }
 }
