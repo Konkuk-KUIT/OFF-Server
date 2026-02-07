@@ -58,6 +58,9 @@ public class Member {
     @Column(nullable = false)
     private ProjectCountType projectCountType;
 
+    @Column(nullable = false)
+    private Boolean isWorking = false;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -92,4 +95,8 @@ public class Member {
 
     @OneToMany(mappedBy = "creator")
     private List<Project> projects = new ArrayList<>();
+
+    public void startWorking() {
+        this.isWorking = true;
+    }
 }

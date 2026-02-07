@@ -42,7 +42,13 @@ public enum SwaggerResponseDescription {
             OPPONENT_NOT_FOUND
     ))),
 
-    CREATE_PROJECT(new HashSet<>(Set.of(
+    ESTIMATE_PROJECT(new HashSet<>(Set.of(
+            MEMBER_NOT_FOUND,
+            INVALID_PROJECT_TYPE,
+            INVALID_ROLE
+    ))),
+
+    CONFIRM_PROJECT(new HashSet<>(Set.of(
             MEMBER_NOT_FOUND,
             INVALID_PROJECT_TYPE,
             INVALID_ROLE
