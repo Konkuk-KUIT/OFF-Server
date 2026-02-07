@@ -51,6 +51,7 @@ public class Member {
     @Column(nullable = false, length = 500)
     private String profileImage;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
 
