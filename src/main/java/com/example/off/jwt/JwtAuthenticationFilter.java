@@ -45,8 +45,8 @@ public class JwtAuthenticationFilter implements Filter {
             String role = claims.get("role", String.class);
 
             //request scope 에 저장
-            request.setAttribute("userId", memberId);
-            request.setAttribute("role", claims.get("role"));
+            request.setAttribute("memberId", memberId);
+            request.setAttribute("role", role);
 
             chain.doFilter(request, response);
         } catch (Exception e) {

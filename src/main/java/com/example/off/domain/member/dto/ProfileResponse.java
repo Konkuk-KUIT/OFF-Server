@@ -21,8 +21,8 @@ public class ProfileResponse {
     private Role role;
 
     //수정하기 메타 데이터
-    private ProjectCountType projectCountType;
-    private List<PortfolioResponse> portfolioResponseList;
+    private ProjectCountType projectCount;
+    private List<PortfolioResponse> portfolioList;
     private String selfIntroduction;
 
 
