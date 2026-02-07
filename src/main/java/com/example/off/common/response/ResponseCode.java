@@ -36,6 +36,9 @@ public enum ResponseCode {
 
     // 회원
     MEMBER_NOT_FOUND(false, 404, "회원을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    DUPLICATE_EMAIL(false, 400, "이미 사용 중인 이메일입니다.", HttpStatus.BAD_REQUEST),
+    INVALID_LOGIN_CREDENTIALS(false, 401, "이메일 또는 비밀번호가 올바르지 않습니다.", HttpStatus.UNAUTHORIZED),
+
 
     // Gemini
     GEMINI_API_ERROR(false, 502, "Gemini API 호출에 실패하였습니다.", HttpStatus.BAD_GATEWAY),

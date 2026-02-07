@@ -54,6 +54,14 @@ public enum SwaggerResponseDescription {
             INVALID_ROLE
     ))),
 
+    SIGNUP(new LinkedHashSet<>(Set.of(
+            DUPLICATE_EMAIL
+    ))),
+
+    LOGIN(new LinkedHashSet<>(Set.of(
+        INVALID_LOGIN_CREDENTIALS
+    ))),
+
     DEFAULT(new LinkedHashSet<>());
 
     private final Set<ResponseCode> responseCodeSet;

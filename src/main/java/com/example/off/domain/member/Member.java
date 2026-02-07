@@ -11,15 +11,14 @@ import com.example.off.domain.role.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Getter
@@ -39,9 +38,6 @@ public class Member {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, unique = true, length = 20)
-    private String phoneNumber;
-
     @Column(nullable = false, unique = true, length = 50)
     private String nickname;
 
@@ -51,8 +47,12 @@ public class Member {
     @Column(nullable = false)
     private LocalDate birth;
 
+    @Setter
     @Column(nullable = false, length = 500)
     private String profileImage;
+
+    @Column(nullable = false)
+    private Role role;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -71,9 +71,6 @@ public class Member {
 
     @OneToMany(mappedBy = "member")
     private List<Portfolio> portfolios = new ArrayList<>();
-
-    @OneToMany(mappedBy = "member")
-    private List<MemberRole> memberRoles = new ArrayList<>();
 
     @OneToMany(mappedBy = "member")
     private List<ProjectMember> projectMembers = new ArrayList<>();
@@ -95,6 +92,31 @@ public class Member {
 
     @OneToMany(mappedBy = "creator")
     private List<Project> projects = new ArrayList<>();
+
+    private Member(
+            String name, String email, String password, String nickname, Role role, String selfIntroduction, LocalDate birth, ProjectCountType projectCountType, String profileImage
+    ) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.nickname = nickname;
+        this.role = role;
+        this.selfIntroduction = selfIntroduction;
+        this.birth = birth;
+        this.isWorking = false;
+        this.projectCountType = projectCountType;
+        this.profileImage = profileImage;
+    }
+
+    public static Member of(String name, String email, String password, String nickname, Role role, String selfIntroduction, LocalDate birth, ProjectCountType projectCountType, String profileImage) {
+        return new Member(
+                name, email, password, nickname, role, selfIntroduction, birth, projectCountType, profileImage
+        );
+    }
+
+    public void addPortfolio(Portfolio portfolio){
+        this.portfolios.add(portfolio);
+    }
 
     public void startWorking() {
         this.isWorking = true;
