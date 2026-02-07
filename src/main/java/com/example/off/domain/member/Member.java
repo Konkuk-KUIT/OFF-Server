@@ -77,7 +77,7 @@ public class Member {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "member")
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Portfolio> portfolios = new ArrayList<>();
 
     @OneToMany(mappedBy = "member")
@@ -124,6 +124,7 @@ public class Member {
 
     public void addPortfolio(Portfolio portfolio){
         this.portfolios.add(portfolio);
+        portfolio.setMember(this); //FK 설정
     }
 
     //Setter

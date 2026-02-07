@@ -49,4 +49,13 @@ public class Portfolio {
     public static Portfolio of(String description, String link, Member member){
         return new Portfolio(description, link, member);
     }
+
+    public void setMember(Member member) {
+        this.member = member;
+
+        if (member != null && !member.getPortfolios().contains(this)) {
+            member.getPortfolios().add(this);
+        }
+    }
+
 }

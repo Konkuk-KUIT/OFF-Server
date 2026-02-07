@@ -33,7 +33,7 @@ public class MemberService {
         //진행 중인 경우 분기 처리
         List<ProjectMember> projectMembers = findMyProjects(memberId);
         if (projectMembers.isEmpty()) { //isWorking==true 인데 projectMember 가 없는 경우.
-            log.error("회원 {}의 프로젝트 진행 여부와 프로젝트 정보가 일치하지 않습니다.", memberId    );
+            log.error("회원 {}의 프로젝트 진행 여부와 프로젝트 정보가 일치하지 않습니다.", memberId);
             throw new OffException(ResponseCode.INTERNAL_SERVER_ERROR);
         }
 
@@ -62,15 +62,15 @@ public class MemberService {
         }
 
         //프로젝트 경험 횟수 수정
-        if (updateReq.projectCountType()!=null)
-            member.updateProjectCount(updateReq.projectCountType());
+        if (updateReq.projectCount()!=null)
+            member.updateProjectCount(updateReq.projectCount());
 
         //포트폴리오 수정
-        if (updateReq.portfolioRequests()!=null){
+        if (updateReq.portfolioList()!=null){
             //기존 포폴 모두 삭제 후 새로 생성, 저장
             member.getPortfolios().clear();
 
-            for (PortfolioRequest pr : updateReq.portfolioRequests()) {
+            for (PortfolioRequest pr : updateReq.portfolioList()) {
                 //des, link 모두 빈 문자열일 경우 저장하지 않음
                 String description = pr.description() == null ? "" : pr.description();
                 String link = pr.link() == null ? "" : pr.link();
