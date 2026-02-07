@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PortfolioRequest {
-    //Todo: null 허용여부
     private String description;
     private String link;
 }

@@ -22,6 +22,7 @@ public class AuthService {
 
     @Transactional
     public SignupResponse signup(@Valid SignupRequest signupRequest) {
+        //Todo: notblank 검증
         //이메일 중복 검증
         if(memberRepository.existsByEmail(signupRequest.getEmail())) {
             throw new OffException(ResponseCode.DUPLICATE_EMAIL);

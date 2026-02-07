@@ -27,8 +27,7 @@ public class MemberService {
 
     @Transactional(readOnly = true)
     public ProfileResponse getMyProfile(Long memberId){
-        //회원 찾기
-        Member member = findMember(memberId);
+        Member member = findMember(memberId); //회원 찾기
 
         //진행중인 project 찾기
         if (!Boolean.TRUE.equals(member.getIsWorking()))
@@ -36,7 +35,6 @@ public class MemberService {
 
         //진행 중인 경우 분기 처리
         List<ProjectMember> projectMembers = findMyProjects(memberId);
-
         if (projectMembers.isEmpty()) { //isWorking==true 인데 projectMember 가 없는 경우.
             log.error("회원 {}의 프로젝트 진행 여부와 프로젝트 정보가 일치하지 않습니다.", memberId    );
             throw new OffException(ResponseCode.INTERNAL_SERVER_ERROR);
@@ -51,20 +49,19 @@ public class MemberService {
         Member member = findMember(memberId);
         //참여했던 플젝 list
         List<ProjectMember> projectMembers = findMyProjects(memberId);
-
         return MyProjectsResponse.from(projectMembers);
     }
 
+    @Transactional
     public void updateProfile(Long memberId, UpdateProfileRequest updateReq){
         Member member = findMember(memberId);
+        String nickname = updateReq.getNickname();
 
-        //Todo: 리팩토링 필요
         //nickname 수정
         //빈 문자열 금지, 중복 허용하지 않음
-        if (updateReq.getNickname()!=null && !updateReq.getNickname().isBlank()){
-            if (memberRepository.existsByNickname(updateReq.getNickname()))
-                throw new OffException(ResponseCode.DUPLICATE_NICKNAME);
-            member.updateNickname(updateReq.getNickname());
+        if (nickname!=null && !nickname.isBlank()){
+            validateNickname(nickname);
+            member.updateNickname(nickname);
         }
 
         //프로젝트 경험 횟수 수정
@@ -77,6 +74,13 @@ public class MemberService {
             member.getPortfolios().clear();
 
             for (PortfolioRequest pr : updateReq.getPortfolioRequests()) {
+                //des, link 모두 빈 문자열일 경우 저장하지 않음
+                String description = pr.getDescription() == null ? "" : pr.getDescription();
+                String link = pr.getLink() == null ? "" : pr.getLink();
+                if (description.isBlank() && link.isBlank()) {
+                    continue;
+                }
+
                 Portfolio portfolio = Portfolio.of(
                         pr.getDescription(),
                         pr.getLink(),
@@ -87,7 +91,7 @@ public class MemberService {
         }
 
         //자기소개 수정 (빈 문자열 허용)
-        if (updateReq.getNickname()!=null){
+        if (updateReq.getSelfIntroduction()!=null){
             member.updateIntroduction(updateReq.getSelfIntroduction());
         }
     }
@@ -101,5 +105,10 @@ public class MemberService {
     //memberId로 진행중인 project 리스트 찾아오기
     public List<ProjectMember> findMyProjects(Long memberId) {
         return projectMemberRepository.findAllByMember_Id(memberId);
+    }
+
+    private void validateNickname(String nickname) {
+        if (memberRepository.existsByNickname(nickname))
+            throw new OffException(ResponseCode.DUPLICATE_NICKNAME);
     }
 }

@@ -29,6 +29,9 @@ import java.util.Set;
 @Getter
 @NoArgsConstructor
 public class Member {
+    public static final int NICKNAME_MAX_LENGTH = 50;
+    public static final int SELF_INTRO_MAX_LENGTH = 1000;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_id")
@@ -43,10 +46,10 @@ public class Member {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, unique = true, length = NICKNAME_MAX_LENGTH)
     private String nickname;
 
-    @Column(nullable = false, length = 1000)
+    @Column(nullable = false, length = SELF_INTRO_MAX_LENGTH)
     private String selfIntroduction;
 
     @Column(nullable = false)
@@ -125,7 +128,7 @@ public class Member {
 
     //Setter
     public void updateNickname(String nickname) {
-        if (nickname.length() > 50)
+        if (nickname.length() > NICKNAME_MAX_LENGTH)
             throw new OffException(ResponseCode.INVALID_INPUT_VALUE);
         this.nickname = nickname;
     }
@@ -135,7 +138,7 @@ public class Member {
     }
 
     public void updateIntroduction(String selfIntroduction) {
-        if (selfIntroduction.length() > 1000)
+        if (selfIntroduction.length() > SELF_INTRO_MAX_LENGTH)
             throw new OffException(ResponseCode.INVALID_INPUT_VALUE);
         this.selfIntroduction = selfIntroduction;
     }
