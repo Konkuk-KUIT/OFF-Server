@@ -58,7 +58,7 @@ public class MemberController {
     }
 
     private Long getMemberId (HttpServletRequest req){
-        Object memberId = (Long) req.getAttribute("memberId");
+        Object memberId = req.getAttribute("memberId");
         if (!(memberId instanceof Long id)) { //변수 선언 동시에 처리
             throw new OffException(ResponseCode.INVALID_TOKEN);
         }

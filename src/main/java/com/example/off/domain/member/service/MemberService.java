@@ -52,7 +52,7 @@ public class MemberService {
     @Transactional
     public UpdateProfileResponse updateProfile(Long memberId, UpdateProfileRequest updateReq){
         Member member = findMember(memberId);
-        String nickname = updateReq.getNickname();
+        String nickname = updateReq.nickname();
 
         //nickname 수정
         //빈 문자열 금지, 중복 허용하지 않음
@@ -62,25 +62,25 @@ public class MemberService {
         }
 
         //프로젝트 경험 횟수 수정
-        if (updateReq.getProjectCountType()!=null)
-            member.updateProjectCount(updateReq.getProjectCountType());
+        if (updateReq.projectCountType()!=null)
+            member.updateProjectCount(updateReq.projectCountType());
 
         //포트폴리오 수정
-        if (updateReq.getPortfolioRequests()!=null){
+        if (updateReq.portfolioRequests()!=null){
             //기존 포폴 모두 삭제 후 새로 생성, 저장
             member.getPortfolios().clear();
 
-            for (PortfolioRequest pr : updateReq.getPortfolioRequests()) {
+            for (PortfolioRequest pr : updateReq.portfolioRequests()) {
                 //des, link 모두 빈 문자열일 경우 저장하지 않음
-                String description = pr.getDescription() == null ? "" : pr.getDescription();
-                String link = pr.getLink() == null ? "" : pr.getLink();
+                String description = pr.description() == null ? "" : pr.description();
+                String link = pr.link() == null ? "" : pr.link();
                 if (description.isBlank() && link.isBlank()) {
                     continue;
                 }
 
                 Portfolio portfolio = Portfolio.of(
-                        pr.getDescription(),
-                        pr.getLink(),
+                        pr.description(),
+                        pr.link(),
                         member
                 );
                 member.getPortfolios().add(portfolio);
@@ -88,8 +88,8 @@ public class MemberService {
         }
 
         //자기소개 수정 (빈 문자열 허용)
-        if (updateReq.getSelfIntroduction()!=null){
-            member.updateIntroduction(updateReq.getSelfIntroduction());
+        if (updateReq.selfIntroduction()!=null){
+            member.updateIntroduction(updateReq.selfIntroduction());
         }
         return UpdateProfileResponse.from(member);
     }
