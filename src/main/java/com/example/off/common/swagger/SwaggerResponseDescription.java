@@ -62,6 +62,12 @@ public enum SwaggerResponseDescription {
             MEMBER_NOT_FOUND
     ))),
 
+    UPDATE_PROFILE(new LinkedHashSet<>(Set.of(
+            MEMBER_NOT_FOUND,
+            DUPLICATE_NICKNAME,
+            DUPLICATE_EMAIL,
+            INVALID_INPUT_VALUE
+    ))),
 
 
     DEFAULT(new LinkedHashSet<>());

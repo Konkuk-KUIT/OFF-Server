@@ -8,9 +8,11 @@ import com.example.off.common.swagger.SwaggerResponseDescription;
 import com.example.off.domain.member.dto.MyProjectsResponse;
 import com.example.off.domain.member.dto.ProfileResponse;
 import com.example.off.domain.member.dto.UpdateProfileRequest;
+import com.example.off.domain.member.dto.UpdateProfileResponse;
 import com.example.off.domain.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,18 +33,17 @@ public class MemberController {
         return BaseResponse.ok(data);
     }
 
-    @Operation(summary = "내 프로필 수정하기")
+    @Operation(summary = "내 프로필 수정하기", description = "현재 록인한 회원의 프로필을 수정합니다.")
     @PatchMapping("/me")
-    //Todo: Swaggerdescription 설정
+    @CustomExceptionDescription(SwaggerResponseDescription.UPDATE_PROFILE)
     //header 와 body 모두 필요함
-    public String updateMyProfile(
+    public BaseResponse<UpdateProfileResponse> updateMyProfile(
             HttpServletRequest request,
-            @RequestBody UpdateProfileRequest updateRequest
+            @Valid @RequestBody UpdateProfileRequest updateRequest
             ) {
         Long memberId = getMemberId(request);
-        memberService.updateProfile(memberId, updateRequest);
-
-        return "string";
+        UpdateProfileResponse data = memberService.updateProfile(memberId, updateRequest);
+        return BaseResponse.ok(data);
     }
 
     @Operation(summary = "참여한 프로젝트 조회",

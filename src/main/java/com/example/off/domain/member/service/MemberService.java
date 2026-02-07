@@ -4,10 +4,7 @@ import com.example.off.common.exception.OffException;
 import com.example.off.common.response.ResponseCode;
 import com.example.off.domain.member.Member;
 import com.example.off.domain.member.Portfolio;
-import com.example.off.domain.member.dto.MyProjectsResponse;
-import com.example.off.domain.member.dto.PortfolioRequest;
-import com.example.off.domain.member.dto.ProfileResponse;
-import com.example.off.domain.member.dto.UpdateProfileRequest;
+import com.example.off.domain.member.dto.*;
 import com.example.off.domain.member.repository.MemberRepository;
 import com.example.off.domain.projectMember.ProjectMember;
 import com.example.off.domain.projectMember.repository.ProjectMemberRepository;
@@ -53,7 +50,7 @@ public class MemberService {
     }
 
     @Transactional
-    public void updateProfile(Long memberId, UpdateProfileRequest updateReq){
+    public UpdateProfileResponse updateProfile(Long memberId, UpdateProfileRequest updateReq){
         Member member = findMember(memberId);
         String nickname = updateReq.getNickname();
 
@@ -94,6 +91,7 @@ public class MemberService {
         if (updateReq.getSelfIntroduction()!=null){
             member.updateIntroduction(updateReq.getSelfIntroduction());
         }
+        return UpdateProfileResponse.from(member);
     }
 
     //memberId로 회원찾기
