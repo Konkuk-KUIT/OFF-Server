@@ -14,7 +14,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import static com.example.off.domain.member.Member.NICKNAME_MAX_LENGTH;
 import static com.example.off.domain.member.Member.SELF_INTRO_MAX_LENGTH;
@@ -23,36 +27,32 @@ import static com.example.off.domain.member.Member.SELF_INTRO_MAX_LENGTH;
 @Service
 @RequiredArgsConstructor
 public class MemberService {
+    private final Clock clock; //현재 시점
     private final MemberRepository memberRepository;
     private final ProjectMemberRepository projectMemberRepository;
+    LocalDateTime now = LocalDateTime.now(clock);
 
     @Transactional(readOnly = true)
     public ProfileResponse getMyProfile(Long memberId){
         Member member = findMember(memberId); //회원 찾기
+        //현재 시점을 기준으로 진행중인 project 찾기
+//        boolean isWorking = projectMemberRepository.existsWorkingProject(memberId, now);
+        Optional<ProjectMember> workingProjectList = projectMemberRepository.findWorkingProject(memberId, now);
+        if (workingProjectList.isEmpty()) //진행 중인 프로젝트 없음.
+            return ProfileResponse.of(member, null);
 
-        //진행중인 project 찾기
-        //현재 시점
-        
-
-
-//        if (!Boolean.TRUE.equals(member.getIsWorking()))
-//            return ProfileResponse.of(member, null);
-
-        //진행 중인 경우 분기 처리
-        //memberId로 진행중인 project 리스트 찾아오기
-        List<ProjectMember> projectMembers = projectMemberRepository.findAllByMember_Id(memberId);
-        if (projectMembers.isEmpty()) { //isWorking==true 인데 projectMember 가 없는 경우.
-            log.error("회원 {}의 프로젝트 진행 여부와 프로젝트 정보가 일치하지 않습니다.", memberId);
-            throw new OffException(ResponseCode.INTERNAL_SERVER_ERROR);
+        if (!Boolean.TRUE.equals(member.getIsWorking())) { //member.isWorking 와 실제 진행 여부가 다른 경우
+            log.warn("회원 {}의 isWorking 값이 실제와 달라 자동 보정합니다.", memberId);
+            member.updateWorking(true);
         }
 
-        String projectName = projectMembers.getFirst().getProject().getName();
-        return ProfileResponse.of(member, projectName);
+        //프로젝트를 진행 중인 경우
+        String workingProjectName = workingProjectList.get().getProject().getName();
+        return ProfileResponse.of(member, workingProjectName);
     }
 
     @Transactional(readOnly = true)
     public MyProjectsResponse getMyProjects(Long memberId){
-        Member member = findMember(memberId);
         //참여했던 플젝 list
         List<ProjectMember> projectMembers = projectMemberRepository.findAllByMember_Id(memberId);
         return MyProjectsResponse.from(projectMembers);
