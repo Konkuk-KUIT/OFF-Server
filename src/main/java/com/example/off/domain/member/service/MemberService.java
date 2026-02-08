@@ -8,16 +8,13 @@ import com.example.off.domain.member.dto.*;
 import com.example.off.domain.member.repository.MemberRepository;
 import com.example.off.domain.projectMember.ProjectMember;
 import com.example.off.domain.projectMember.repository.ProjectMemberRepository;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.example.off.domain.member.Member.NICKNAME_MAX_LENGTH;
@@ -27,10 +24,9 @@ import static com.example.off.domain.member.Member.SELF_INTRO_MAX_LENGTH;
 @Service
 @RequiredArgsConstructor
 public class MemberService {
-    private final Clock clock; //현재 시점
     private final MemberRepository memberRepository;
     private final ProjectMemberRepository projectMemberRepository;
-    LocalDateTime now = LocalDateTime.now(clock);
+    LocalDateTime now = LocalDateTime.now();
 
     @Transactional(readOnly = true)
     public ProfileResponse getMyProfile(Long memberId){

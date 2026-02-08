@@ -10,7 +10,6 @@ import java.util.Optional;
 
 public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Long> {
     List<ProjectMember> findAllByMember_Id(Long memberId);
-
     @Query("""
             select case when count(pm) > 0 then true else false and
             from ProjectMember pm
