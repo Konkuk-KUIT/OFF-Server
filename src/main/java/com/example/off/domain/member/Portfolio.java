@@ -3,6 +3,7 @@ package com.example.off.domain.member;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -36,6 +37,7 @@ public class Portfolio {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
@@ -47,14 +49,6 @@ public class Portfolio {
 
     public static Portfolio of(String description, String link){
         return new Portfolio(description, link);
-    }
-
-    public void setMember(Member member) {
-        this.member = member;
-
-        if (member != null && !member.getPortfolios().contains(this)) {
-            member.getPortfolios().add(this);
-        }
     }
 
 }
