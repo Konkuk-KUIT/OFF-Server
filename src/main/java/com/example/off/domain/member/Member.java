@@ -131,8 +131,5 @@ public class Member {
         this.projectCountType = count;
     }
     public void updateIntroduction(String selfIntroduction) { this.selfIntroduction = selfIntroduction; }
-    public void updateWorking(Boolean isWorking) { this.isWorking = isWorking; }
-    public void startWorking() {
-        this.isWorking = true;
-    }
+    public void startWorking() { this.isWorking = true; }
 }

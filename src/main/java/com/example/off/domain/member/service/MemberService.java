@@ -41,9 +41,9 @@ public class MemberService {
         if (workingProjectList.isEmpty()) //진행 중인 프로젝트 없음.
             return ProfileResponse.of(member, null);
 
-        if (!Boolean.TRUE.equals(member.getIsWorking())) { //member.isWorking 와 실제 진행 여부가 다른 경우
+        if (!Boolean.TRUE.equals(member.getIsWorking())) { //실제 프로젝트 진행중이지만 member.isWorking == false 인 경우
             log.warn("회원 {}의 isWorking 값이 실제와 달라 자동 보정합니다.", memberId);
-            member.updateWorking(true);
+            member.startWorking();
         }
 
         //프로젝트를 진행 중인 경우
