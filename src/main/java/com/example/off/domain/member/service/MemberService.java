@@ -8,12 +8,16 @@ import com.example.off.domain.member.dto.*;
 import com.example.off.domain.member.repository.MemberRepository;
 import com.example.off.domain.projectMember.ProjectMember;
 import com.example.off.domain.projectMember.repository.ProjectMemberRepository;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.example.off.domain.member.Member.NICKNAME_MAX_LENGTH;
+import static com.example.off.domain.member.Member.SELF_INTRO_MAX_LENGTH;
 
 @Slf4j
 @Service
@@ -27,11 +31,16 @@ public class MemberService {
         Member member = findMember(memberId); //회원 찾기
 
         //진행중인 project 찾기
-        if (!Boolean.TRUE.equals(member.getIsWorking()))
-            return ProfileResponse.of(member, null);
+        //현재 시점
+        
+
+
+//        if (!Boolean.TRUE.equals(member.getIsWorking()))
+//            return ProfileResponse.of(member, null);
 
         //진행 중인 경우 분기 처리
-        List<ProjectMember> projectMembers = findMyProjects(memberId);
+        //memberId로 진행중인 project 리스트 찾아오기
+        List<ProjectMember> projectMembers = projectMemberRepository.findAllByMember_Id(memberId);
         if (projectMembers.isEmpty()) { //isWorking==true 인데 projectMember 가 없는 경우.
             log.error("회원 {}의 프로젝트 진행 여부와 프로젝트 정보가 일치하지 않습니다.", memberId);
             throw new OffException(ResponseCode.INTERNAL_SERVER_ERROR);
@@ -45,7 +54,7 @@ public class MemberService {
     public MyProjectsResponse getMyProjects(Long memberId){
         Member member = findMember(memberId);
         //참여했던 플젝 list
-        List<ProjectMember> projectMembers = findMyProjects(memberId);
+        List<ProjectMember> projectMembers = projectMemberRepository.findAllByMember_Id(memberId);
         return MyProjectsResponse.from(projectMembers);
     }
 
@@ -88,8 +97,10 @@ public class MemberService {
         }
 
         //자기소개 수정 (빈 문자열 허용)
-        if (updateReq.selfIntroduction()!=null){
-            member.updateIntroduction(updateReq.selfIntroduction());
+        String selfIntroduction = updateReq.selfIntroduction();
+        if (selfIntroduction!=null){
+            validateIntroduction(selfIntroduction);
+            member.updateIntroduction(selfIntroduction);
         }
         return UpdateProfileResponse.from(member);
     }
@@ -100,13 +111,16 @@ public class MemberService {
                 .orElseThrow(()->new OffException(ResponseCode.MEMBER_NOT_FOUND));
     }
 
-    //memberId로 진행중인 project 리스트 찾아오기
-    public List<ProjectMember> findMyProjects(Long memberId) {
-        return projectMemberRepository.findAllByMember_Id(memberId);
-    }
-
     private void validateNickname(String nickname) {
         if (memberRepository.existsByNickname(nickname))
             throw new OffException(ResponseCode.DUPLICATE_NICKNAME);
+
+        if (nickname.length() > NICKNAME_MAX_LENGTH)
+            throw new OffException(ResponseCode.INVALID_INPUT_VALUE);
+    }
+
+    private void validateIntroduction(String selfIntroduction) {
+        if (selfIntroduction.length() > SELF_INTRO_MAX_LENGTH)
+            throw new OffException(ResponseCode.INVALID_INPUT_VALUE);
     }
 }

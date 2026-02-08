@@ -128,19 +128,9 @@ public class Member {
     }
 
     //Setter
-    public void updateNickname(String nickname) {
-        if (nickname.length() > NICKNAME_MAX_LENGTH)
-            throw new OffException(ResponseCode.INVALID_INPUT_VALUE);
-        this.nickname = nickname;
-    }
-
+    public void updateNickname(String nickname) { this.nickname = nickname; }
     public void updateProjectCount(ProjectCountType count){
         this.projectCountType = count;
     }
-
-    public void updateIntroduction(String selfIntroduction) {
-        if (selfIntroduction.length() > SELF_INTRO_MAX_LENGTH)
-            throw new OffException(ResponseCode.INVALID_INPUT_VALUE);
-        this.selfIntroduction = selfIntroduction;
-    }
+    public void updateIntroduction(String selfIntroduction) { this.selfIntroduction = selfIntroduction; }
 }
