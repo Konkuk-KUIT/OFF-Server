@@ -11,7 +11,6 @@ import com.example.off.domain.project.Project;
 import com.example.off.domain.projectMember.ProjectMember;
 import com.example.off.domain.role.Role;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,9 +20,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Getter
@@ -59,15 +56,16 @@ public class Member {
     @Column(nullable = false, length = 500)
     private String profileImage;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
-
-    @Column(nullable = false)
-    private Boolean isWorking;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProjectCountType projectCountType;
+
+    @Column(nullable = false)
+    private Boolean isWorking = false;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -134,4 +132,7 @@ public class Member {
     }
     public void updateIntroduction(String selfIntroduction) { this.selfIntroduction = selfIntroduction; }
     public void updateWorking(Boolean isWorking) { this.isWorking = isWorking; }
+    public void startWorking() {
+        this.isWorking = true;
+    }
 }

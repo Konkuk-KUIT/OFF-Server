@@ -1,5 +1,8 @@
 package com.example.off.domain.role;
 
+import lombok.Getter;
+
+@Getter
 public enum Role {
     PM("기획자"),
     DEV("개발자"),
