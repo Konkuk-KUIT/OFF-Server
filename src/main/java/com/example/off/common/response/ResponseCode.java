@@ -41,6 +41,15 @@ public enum ResponseCode {
     DUPLICATE_NICKNAME(false, 409, "이미 사용 중인 닉네임입니다.", HttpStatus.CONFLICT),
     INVALID_LOGIN_CREDENTIALS(false, 401, "이메일 또는 비밀번호가 올바르지 않습니다.", HttpStatus.UNAUTHORIZED),
 
+
+    // Gemini
+    GEMINI_API_ERROR(false, 502, "Gemini API 호출에 실패하였습니다.", HttpStatus.BAD_GATEWAY),
+
+    // 프로젝트
+    PROJECT_NOT_FOUND(false, 404, "프로젝트를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    INVALID_PROJECT_TYPE(false, 400, "유효하지 않은 프로젝트 유형입니다.", HttpStatus.BAD_REQUEST),
+    INVALID_ROLE(false, 400, "유효하지 않은 직무입니다.", HttpStatus.BAD_REQUEST),
+
     // 토큰
     INVALID_TOKEN(false, 400, "유효하지 않은 토큰입니다.", HttpStatus.BAD_REQUEST),
     TOKEN_NOT_FOUND(false, 404, "토큰을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
