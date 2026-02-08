@@ -89,8 +89,7 @@ public class MemberService {
 
                 Portfolio portfolio = Portfolio.of(
                         pr.description(),
-                        pr.link(),
-                        member
+                        pr.link()
                 );
                 member.getPortfolios().add(portfolio);
             }
