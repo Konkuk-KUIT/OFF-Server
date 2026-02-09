@@ -1,5 +1,7 @@
 package com.example.off.domain.projectMember.repository;
 
+import com.example.off.domain.member.Member;
+import com.example.off.domain.project.Project;
 import com.example.off.domain.projectMember.ProjectMember;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,6 +13,7 @@ import java.util.Optional;
 
 public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Long> {
     List<ProjectMember> findAllByMember_Id(Long memberId);
+    Optional<ProjectMember> findByProjectAndMember(Project project, Member member);
 
     @Query("""
                 select pm

@@ -49,6 +49,8 @@ public enum ResponseCode {
     PROJECT_NOT_FOUND(false, 404, "프로젝트를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     INVALID_PROJECT_TYPE(false, 400, "유효하지 않은 프로젝트 유형입니다.", HttpStatus.BAD_REQUEST),
     INVALID_ROLE(false, 400, "유효하지 않은 직무입니다.", HttpStatus.BAD_REQUEST),
+    RECRUIT_NOT_FOUND(false, 404, "파트너 모집 공고를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    APPLICATION_NOT_FOUND(false, 404, "파트너 요청을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
     // 토큰
     INVALID_TOKEN(false, 400, "유효하지 않은 토큰입니다.", HttpStatus.BAD_REQUEST),

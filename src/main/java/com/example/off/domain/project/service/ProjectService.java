@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,12 +53,20 @@ public class ProjectService {
 
         // 2. 외부 API 호출 (LLM)
         String serviceSummary = generateServiceSummary(request.getDescription(), request.getRequirement());
-        for (RecruitmentInfo info : recruitments) {
-            info.cost = estimateCostPerRole(info.role, request.getDescription(), request.getRequirement());
-        }
 
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = estimateEndDate(startDate, request.getDescription(), request.getRequirement());
+
+        // 전체 일 수
+        long days = ChronoUnit.DAYS.between(startDate, endDate);
+
+        // 30일 = 1개월
+        double months = days / 30.0;
+
+        for (RecruitmentInfo info : recruitments) {
+            info.cost = (int)(estimateCostPerRole(info.role, request.getDescription(), request.getRequirement()) * months);
+        }
+
 
         // 3. 견적 계산
         int totalEstimate = recruitments.stream()
@@ -94,6 +103,12 @@ public class ProjectService {
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = LocalDate.parse(request.getEndDate(), END_DATE_FORMATTER);
 
+        // 전체 일 수
+        long days = ChronoUnit.DAYS.between(startDate, endDate);
+
+        // 30일 = 1개월
+        double months = days / 30.0;
+
         // 3. 프로젝트 진행 상태 반영
         creator.startWorking();
 
@@ -102,7 +117,7 @@ public class ProjectService {
                 request.getName(),
                 request.getDescription(),
                 request.getRequirement(),
-                (long) request.getTotalEstimate(),
+                (long) (request.getTotalEstimate() * months),
                 startDate,
                 endDate,
                 projectType,
@@ -112,7 +127,7 @@ public class ProjectService {
         for (ConfirmProjectRequest.RecruitmentRequest r : request.getRecruitmentList()) {
             Role role = parseRole(r.getRoleId());
             partnerRecruitRepository.save(
-                    new PartnerRecruit(project, role, r.getCount(), RecruitStatus.OPEN));
+                    new PartnerRecruit(project, role, r.getCount(), RecruitStatus.OPEN, r.getCost()));
         }
 
         return ConfirmProjectResponse.of(project.getId());

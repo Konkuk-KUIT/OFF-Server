@@ -52,4 +52,14 @@ public class PayLog {
     @JoinColumn(name = "project_member_id", nullable = false)
     private ProjectMember projectMember;
 
+    private PayLog(Long amount, PayStatus status, Member member, ProjectMember projectMember) {
+        this.amount = amount;
+        this.status = status;
+        this.member = member;
+        this.projectMember = projectMember;
+    }
+
+    public static PayLog of(Long amount, PayStatus status, Member member, ProjectMember projectMember){
+        return new PayLog(amount, status, member, projectMember);
+    }
 }
