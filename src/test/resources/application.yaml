@@ -1,15 +1,9 @@
 spring:
-  application:
-    name: off-test  # 헷갈리지 않게 이름 변경 (선택사항)
-
   datasource:
-    # ✅ 핵심 1: RDS 대신 H2 인메모리 DB 사용
-    # MODE=PostgreSQL: H2가 포스트그레스큐엘 문법을 흉내 내도록 설정
     url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
     username: sa
     password:
-
   sql:
     init:
       mode: always
@@ -17,22 +11,16 @@ spring:
   jpa:
     defer-datasource-initialization: true
     hibernate:
-      # ✅ 핵심 2: 테스트 시작 시 테이블 생성(create), 종료 시 삭제(drop)
-      # 이렇게 해야 매번 깨끗한 상태에서 테스트 가능
       ddl-auto: create-drop
     properties:
       hibernate:
         format_sql: true
-        show_sql: true
-    # ✅ 핵심 3: H2 방언(Dialect) 설정 명시
     database-platform: org.hibernate.dialect.H2Dialect
 
-springdoc:
-  api-docs:
-    version: openapi_3_0
-
 gemini:
-  # ✅ 핵심 4: 환경 변수 ${...} 제거하고 임의의 값 넣기
-  # 테스트에서는 실제 API 호출을 안 하거나 Mocking 하므로 가짜 키라도 상관없음
-  api-key: test-gemini-api-key
+  api-key: test-dummy-key
   url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+
+jwt:
+  secret: this-is-test-secret-key-must-be-long-enough-for-security-policy
+  expire-ms: 3600000
