@@ -19,6 +19,7 @@ import static com.example.off.common.response.ResponseCode.INVALID_TOKEN;
 public class JwtTokenService {
 
     // 보통 설정파일(@Value)에서 가져오거나 상수로 정의되어 있을 거예요.
+    //Todo: secret 주입 수정
     private final String secretKeyString = "여기에_엄청_긴_비밀키가_들어있을_거예요_최소_32자_이상";
 
     /**

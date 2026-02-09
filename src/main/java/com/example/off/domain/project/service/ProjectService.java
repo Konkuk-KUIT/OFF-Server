@@ -10,6 +10,8 @@ import com.example.off.domain.partnerRecruit.RecruitStatus;
 import com.example.off.domain.partnerRecruit.repository.PartnerRecruitRepository;
 import com.example.off.domain.project.Project;
 import com.example.off.domain.project.ProjectType;
+import com.example.off.domain.project.dto.ConfirmProjectRequest;
+import com.example.off.domain.project.dto.ConfirmProjectResponse;
 import com.example.off.domain.project.dto.CreateProjectRequest;
 import com.example.off.domain.project.dto.CreateProjectResponse;
 import com.example.off.domain.project.repository.ProjectRepository;
@@ -19,8 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -40,12 +41,11 @@ public class ProjectService {
     private final PartnerRecruitRepository partnerRecruitRepository;
     private final MemberRepository memberRepository;
     private final GeminiService geminiService;
-    private final PlatformTransactionManager transactionManager;
     private final ObjectMapper objectMapper;
 
-    public CreateProjectResponse createProject(Long memberId, CreateProjectRequest request) {
+    public CreateProjectResponse estimateProject(Long memberId, CreateProjectRequest request) {
         // 1. 검증 및 데이터 조회
-        Member creator = memberRepository.findById(memberId)
+        memberRepository.findById(memberId)
                 .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
         ProjectType projectType = parseProjectType(request.getProjectTypeId());
 
@@ -67,6 +67,7 @@ public class ProjectService {
 
         String serviceSummary = estimation.serviceSummary();
         LocalDate endDate = startDate.plusDays(estimation.estimatedDays());
+
         for (RecruitmentInfo info : recruitments) {
             info.cost = estimation.costs().getOrDefault(info.role.name(), 0);
         }
@@ -76,26 +77,7 @@ public class ProjectService {
                 .mapToInt(r -> r.cost * r.count)
                 .sum();
 
-        // 4. DB 저장 (짧은 트랜잭션)
-        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
-            Project project = new Project(
-                    request.getName(),
-                    request.getDescription(),
-                    request.getRequirement(),
-                    (long) totalEstimate,
-                    startDate,
-                    endDate,
-                    projectType,
-                    creator);
-            projectRepository.save(project);
-
-            for (RecruitmentInfo info : recruitments) {
-                partnerRecruitRepository.save(
-                        new PartnerRecruit(project, info.role, info.count, RecruitStatus.OPEN));
-            }
-        });
-
-        // 5. 응답 구성
+        // 4. 응답 구성 (DB 저장 없음 — 미리보기용)
         List<String> recruitmentRoles = recruitments.stream()
                 .map(r -> r.role.name())
                 .toList();
@@ -112,6 +94,41 @@ public class ProjectService {
                 serviceSummary,
                 totalEstimate,
                 estimateList);
+    }
+
+    @Transactional
+    public ConfirmProjectResponse confirmProject(Long memberId, ConfirmProjectRequest request) {
+        // 1. 검증
+        Member creator = memberRepository.findById(memberId)
+                .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
+        ProjectType projectType = parseProjectType(request.getProjectTypeId());
+
+        // 2. 날짜 파싱
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = LocalDate.parse(request.getEndDate(), END_DATE_FORMATTER);
+
+        // 3. 프로젝트 진행 상태 반영
+        creator.startWorking();
+
+        // 4. DB 저장
+        Project project = new Project(
+                request.getName(),
+                request.getDescription(),
+                request.getRequirement(),
+                (long) request.getTotalEstimate(),
+                startDate,
+                endDate,
+                projectType,
+                creator);
+        projectRepository.save(project);
+
+        for (ConfirmProjectRequest.RecruitmentRequest r : request.getRecruitmentList()) {
+            Role role = parseRole(r.getRoleId());
+            partnerRecruitRepository.save(
+                    new PartnerRecruit(project, role, r.getCount(), RecruitStatus.OPEN));
+        }
+
+        return ConfirmProjectResponse.of(project.getId());
     }
 
     private ProjectType parseProjectType(Long projectTypeId) {

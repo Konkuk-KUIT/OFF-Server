@@ -26,6 +26,16 @@ public class PayLog {
     @Column(name = "pay_log_id")
     private Long id;
 
+    @Column(nullable = false)
+    private Long amount;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PayStatus status;
+
+    @Column
+    private LocalDateTime paidAt;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

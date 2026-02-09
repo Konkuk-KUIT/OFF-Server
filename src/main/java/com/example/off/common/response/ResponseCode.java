@@ -25,6 +25,7 @@ public enum ResponseCode {
     API_NOT_FOUND(false, 404, "존재하지 않는 API입니다.", HttpStatus.NOT_FOUND),
     METHOD_NOT_ALLOWED(false, 405, "유효하지 않은 Http 메서드입니다.", HttpStatus.METHOD_NOT_ALLOWED),
     INTERNAL_SERVER_ERROR(false, 500, "서버 내부 오류입니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    INVALID_INPUT_VALUE(false, 400, "입력값이 유효하지 않습니다.", HttpStatus.BAD_REQUEST),
 
     // 알림
     NOTIFICATION_NOT_FOUND(false, 404, "알림을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
@@ -36,6 +37,10 @@ public enum ResponseCode {
 
     // 회원
     MEMBER_NOT_FOUND(false, 404, "회원을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    DUPLICATE_EMAIL(false, 409, "이미 사용 중인 이메일입니다.", HttpStatus.CONFLICT),
+    DUPLICATE_NICKNAME(false, 409, "이미 사용 중인 닉네임입니다.", HttpStatus.CONFLICT),
+    INVALID_LOGIN_CREDENTIALS(false, 401, "이메일 또는 비밀번호가 올바르지 않습니다.", HttpStatus.UNAUTHORIZED),
+
 
     // Gemini
     GEMINI_API_ERROR(false, 502, "Gemini API 호출에 실패하였습니다.", HttpStatus.BAD_GATEWAY),
