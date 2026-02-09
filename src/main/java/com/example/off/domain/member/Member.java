@@ -1,5 +1,7 @@
 package com.example.off.domain.member;
 
+import com.example.off.common.exception.OffException;
+import com.example.off.common.response.ResponseCode;
 import com.example.off.domain.chat.ChatRoomMember;
 import com.example.off.domain.chat.Message;
 import com.example.off.domain.notification.Notification;
@@ -24,6 +26,9 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class Member {
+    public static final int NICKNAME_MAX_LENGTH = 50;
+    public static final int SELF_INTRO_MAX_LENGTH = 1000;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_id")
@@ -38,10 +43,10 @@ public class Member {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, unique = true, length = NICKNAME_MAX_LENGTH)
     private String nickname;
 
-    @Column(nullable = false, length = 1000)
+    @Column(nullable = false, length = SELF_INTRO_MAX_LENGTH)
     private String selfIntroduction;
 
     @Column(nullable = false)
@@ -70,7 +75,7 @@ public class Member {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "member")
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Portfolio> portfolios = new ArrayList<>();
 
     @OneToMany(mappedBy = "member")
@@ -117,9 +122,14 @@ public class Member {
 
     public void addPortfolio(Portfolio portfolio){
         this.portfolios.add(portfolio);
+        portfolio.setMember(this); //FK 설정
     }
 
-    public void startWorking() {
-        this.isWorking = true;
+    //Setter
+    public void updateNickname(String nickname) { this.nickname = nickname; }
+    public void updateProjectCount(ProjectCountType count){
+        this.projectCountType = count;
     }
+    public void updateIntroduction(String selfIntroduction) { this.selfIntroduction = selfIntroduction; }
+    public void startWorking() { this.isWorking = true; }
 }

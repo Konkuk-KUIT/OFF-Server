@@ -62,6 +62,25 @@ public enum SwaggerResponseDescription {
         INVALID_LOGIN_CREDENTIALS
     ))),
 
+    GET_MY_PROFILE(new LinkedHashSet<>(Set.of(
+            INVALID_TOKEN,
+            MEMBER_NOT_FOUND,
+            INTERNAL_SERVER_ERROR
+    ))),
+
+    GET_MY_PROJECTS(new LinkedHashSet<>(Set.of(
+            INVALID_TOKEN,
+            MEMBER_NOT_FOUND
+    ))),
+
+    UPDATE_PROFILE(new LinkedHashSet<>(Set.of(
+            MEMBER_NOT_FOUND,
+            DUPLICATE_NICKNAME,
+            DUPLICATE_EMAIL,
+            INVALID_INPUT_VALUE
+    ))),
+
+
     DEFAULT(new LinkedHashSet<>());
 
     private final Set<ResponseCode> responseCodeSet;

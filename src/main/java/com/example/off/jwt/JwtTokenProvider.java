@@ -18,6 +18,7 @@ public class JwtTokenProvider {
     //Todo: 추후 Value 주입
     //secret key 주입
 //    @Value("${jwt.secret}")
+//    private String secret;
     private String secret = "01234567890123456789012345678901";
 
 
@@ -37,12 +38,12 @@ public class JwtTokenProvider {
     }
 
     //JWT 생성
-    public String createToken(String userId, String role) {
+    public String createToken(String memberId, String role) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expireMs);
 
         return Jwts.builder()
-                .subject(userId)
+                .subject(memberId)
                 .claim("role", role)
                 .issuedAt(now)
                 .expiration(expiry)
