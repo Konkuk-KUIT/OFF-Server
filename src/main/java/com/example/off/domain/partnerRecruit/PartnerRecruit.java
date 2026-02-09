@@ -36,6 +36,9 @@ public class PartnerRecruit {
     @Column(nullable = false)
     private Integer numberOfPerson;
 
+    @Column(nullable = false)
+    private Integer cost;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
