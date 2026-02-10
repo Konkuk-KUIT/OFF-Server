@@ -3,6 +3,11 @@ spring:
     name: off
   jpa:
     defer-datasource-initialization: true
+  thymeleaf:
+    cache: false
+    check-template-location: true
+    prefix: classpath:/templates/
+    suffix: .html
 springdoc:
   api-docs:
     version: openapi_3_0  # 3.1.0 대신 3.0.x 계열을 사용하도록 강제함
@@ -12,3 +17,9 @@ gemini:
 jwt:
     secret: ${JWT_SECRET}
     expire-ms: 3600000
+
+payment:
+  client:
+    key: ${PAYMENT_CLIENT_KEY}
+  secret:
+    key: ${PAYMENT_SECRET_KEY}
