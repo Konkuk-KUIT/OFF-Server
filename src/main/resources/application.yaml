@@ -2,33 +2,41 @@ spring:
   application:
     name: off
   datasource:
-    # jdbc:postgresql://[엔드포인트주소]:5432/[DB이름]
-    url: jdbc:postgresql://${DB_ENDPOINT}:5432/postgres
+    # 'postgres' 대신 실제 사용할 DB 이름(예: off)을 권장
+    url: jdbc:postgresql://${DB_ENDPOINT}:5432/postgres 
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   sql:
     init:
-      mode: always
+      mode: always # data.sql이 중복 실행되어도 에러 안 나게 쿼리 짰는지 확인 필수!
   jpa:
     defer-datasource-initialization: true
     hibernate:
-      # create: 매번 실행할 때마다 테이블 다 지우고 새로 만듦 (주의!)
-      # update: 변경된 부분만 반영 (개발할 때 추천)
-      ddl-auto: update
+      ddl-auto: update  # [추가] 테이블 자동 생성/수정 옵션
     properties:
       hibernate:
-        format_sql: true # 로그에 SQL 예쁘게 출력
-        show_sql: true   # 실행되는 SQL 보여주기
+        format_sql: true # [선택] 로그에 SQL 예쁘게 출력
+  thymeleaf:
+    cache: false
+    check-template-location: true
+    prefix: classpath:/templates/
+    suffix: .html
 
 springdoc:
   api-docs:
-    version: openapi_3_0  # 3.1.0 대신 3.0.x 계열을 사용하도록 강제함
+    version: openapi_3_0
 
 gemini:
   api-key: ${GEMINI_API_KEY}
   url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 jwt:
-  secret: ${JWT_SECRET}
-  expire-ms: 3600000  # (1시간) 이 숫자가 없어서 에러가 난 것입니다.
+  secret: ${JWT_SECRET}      # 들여쓰기 수정됨
+  expire-ms: 3600000         # 들여쓰기 수정됨
+
+payment:
+  client:
+    key: ${PAYMENT_CLIENT_KEY}
+  secret:
+    key: ${PAYMENT_SECRET_KEY}

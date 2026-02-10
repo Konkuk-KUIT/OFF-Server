@@ -88,7 +88,7 @@ public class Member {
     @OneToMany(mappedBy = "member")
     private List<Notification> notifications = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member")
+    @OneToMany(mappedBy = "payer")
     private List<PayLog> payLogs = new ArrayList<>();
 
     @OneToMany(mappedBy = "member")

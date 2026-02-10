@@ -22,7 +22,7 @@ public class FilterConfig {
         bean.setFilter(new JwtAuthenticationFilter(jwtTokenProvider));
 
         // 인증 필요한 URL만
-        bean.addUrlPatterns("/members/*");
+        bean.addUrlPatterns("/members/*", "/members/*/*", "/members/*/*/*");
 
         // 다른 필터들보다 먼저
         bean.setOrder(1);

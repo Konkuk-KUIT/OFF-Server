@@ -36,6 +36,9 @@ public class PartnerRecruit {
     @Column(nullable = false)
     private Integer numberOfPerson;
 
+    @Column(nullable = false)
+    private Integer cost;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -59,10 +62,14 @@ public class PartnerRecruit {
     @OneToMany(mappedBy = "partnerRecruit")
     private List<PartnerApplication> partnerApplications = new ArrayList<>();
 
-    public PartnerRecruit(Project project, Role role, Integer numberOfPerson, RecruitStatus recruitStatus) {
+    public PartnerRecruit(Project project, Role role, Integer numberOfPerson, RecruitStatus recruitStatus, int cost) {
         this.project = project;
         this.role = role;
         this.numberOfPerson = numberOfPerson;
         this.recruitStatus = recruitStatus;
+        this.cost = cost;
+    }
+    public void downNumberOfPerson(){
+        this.numberOfPerson--;
     }
 }
