@@ -57,14 +57,13 @@ public class ProjectService {
             recruitments.add(new RecruitmentInfo(role, r.getCount(), candidates));
         }
 
-        // 2. 외부 API 호출 (LLM)
-        String serviceSummary = generateServiceSummary(request.getDescription(), request.getRequirement());
-
+        // 2. 외부 API 호출 (통합 메서드 사용)
         LocalDate startDate = LocalDate.now();
         List<String> roleNames = recruitments.stream()
                 .map(r -> r.role.name())
                 .collect(Collectors.toList());
 
+        // [중요] 이곳이 충돌 해결된 부분입니다. 한 번만 호출합니다.
         GeminiEstimation estimation = getProjectEstimation(
                 request.getDescription(), request.getRequirement(), roleNames, startDate);
 
@@ -74,18 +73,6 @@ public class ProjectService {
         for (RecruitmentInfo info : recruitments) {
             info.cost = estimation.costs().getOrDefault(info.role.name(), 0);
         }
-        LocalDate endDate = estimateEndDate(startDate, request.getDescription(), request.getRequirement());
-
-        // 전체 일 수
-        long days = ChronoUnit.DAYS.between(startDate, endDate);
-
-        // 30일 = 1개월
-        double months = days / 30.0;
-
-        for (RecruitmentInfo info : recruitments) {
-            info.cost = (int)(estimateCostPerRole(info.role, request.getDescription(), request.getRequirement()) * months);
-        }
-
 
         // 3. 견적 계산
         int totalEstimate = recruitments.stream()
