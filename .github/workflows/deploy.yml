@@ -35,6 +35,12 @@ jobs:
           JAR=$(ls build/libs/*.jar | grep -v plain | head -n 1)
           cp "$JAR" app.jar
 
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: app.jar
+
 
   deploy:
     needs: build

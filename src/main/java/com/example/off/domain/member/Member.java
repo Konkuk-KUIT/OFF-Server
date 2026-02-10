@@ -12,6 +12,7 @@ import com.example.off.domain.projectMember.ProjectMember;
 import com.example.off.domain.role.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
+import org.hibernate.annotations.ColumnDefault;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -57,7 +58,6 @@ public class Member {
     private String profileImage;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Role role;
 
     @Enumerated(EnumType.STRING)
@@ -65,6 +65,7 @@ public class Member {
     private ProjectCountType projectCountType;
 
     @Column(nullable = false)
+    @ColumnDefault("false")
     private Boolean isWorking = false;
 
     @CreationTimestamp
