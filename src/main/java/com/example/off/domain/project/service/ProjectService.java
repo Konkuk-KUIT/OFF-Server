@@ -16,8 +16,6 @@ import com.example.off.domain.project.dto.CreateProjectRequest;
 import com.example.off.domain.project.dto.CreateProjectResponse;
 import com.example.off.domain.project.repository.ProjectRepository;
 import com.example.off.domain.role.Role;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,10 +25,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -42,7 +37,6 @@ public class ProjectService {
     private final PartnerRecruitRepository partnerRecruitRepository;
     private final MemberRepository memberRepository;
     private final GeminiService geminiService;
-    private final ObjectMapper objectMapper;
 
     public CreateProjectResponse estimateProject(Long memberId, CreateProjectRequest request) {
         // 1. 검증 및 데이터 조회
@@ -57,22 +51,22 @@ public class ProjectService {
             recruitments.add(new RecruitmentInfo(role, r.getCount(), candidates));
         }
 
-        // 2. 외부 API 호출 (통합 메서드 사용)
+        // 2. 외부 API 호출 (LLM)
+        String serviceSummary = generateServiceSummary(request.getDescription(), request.getRequirement());
+
         LocalDate startDate = LocalDate.now();
-        List<String> roleNames = recruitments.stream()
-                .map(r -> r.role.name())
-                .collect(Collectors.toList());
+        LocalDate endDate = estimateEndDate(startDate, request.getDescription(), request.getRequirement());
 
-        // [중요] 이곳이 충돌 해결된 부분입니다. 한 번만 호출합니다.
-        GeminiEstimation estimation = getProjectEstimation(
-                request.getDescription(), request.getRequirement(), roleNames, startDate);
+        // 전체 일 수
+        long days = ChronoUnit.DAYS.between(startDate, endDate);
 
-        String serviceSummary = estimation.serviceSummary();
-        LocalDate endDate = startDate.plusDays(estimation.estimatedDays());
+        // 30일 = 1개월
+        double months = days / 30.0;
 
         for (RecruitmentInfo info : recruitments) {
-            info.cost = estimation.costs().getOrDefault(info.role.name(), 0);
+            info.cost = (int)(estimateCostPerRole(info.role, request.getDescription(), request.getRequirement()) * months);
         }
+
 
         // 3. 견적 계산
         int totalEstimate = recruitments.stream()
@@ -163,24 +157,22 @@ public class ProjectService {
         };
     }
 
-    private GeminiEstimation getProjectEstimation(String description, String requirement,
-                                                   List<String> roleNames, LocalDate startDate) {
-        String rolesJson = roleNames.stream()
-                .map(r -> "\"" + r + "\": 0")
-                .collect(Collectors.joining(", "));
-
+    private String generateServiceSummary(String description, String requirement) {
         String prompt = """
                 당신은 IT 프로젝트 전문 PM입니다.
-                아래 프로젝트 정보를 분석하여, 다음 3가지를 포함하는 JSON 객체를 **하나만** 응답해주세요.
+                사용자가 입력한 `서비스 설명`과 `요구사항`을 분석하여 다음 두 가지 섹션으로 구성된 상세 기획안을 작성해주세요.
 
-                1. serviceSummary: 서비스 상세 정의와 단계별 프로젝트 실행 계획을 마크다운으로 작성
-                   - Section 1: 서비스가 무엇인지, 주요 타겟과 핵심 가치 요약
-                   - Section 2: [기획 - 디자인 - 개발 - 테스트/배포] 단계별 핵심 Task와 세부 할일
-                2. costs: 각 직군별 1인당 월 예상 비용(만원 단위, 정수)
-                3. estimatedDays: 시작일(%s)로부터 프로젝트 완료까지 예상 소요일(정수)
+                **Section 1. 서비스 상세 정의**
+                - 이 서비스가 무엇인지, 주요 타겟과 핵심 가치가 무엇인지 명확하게 요약 설명.
 
-                **반드시 아래 JSON 형식만 출력하세요. 다른 텍스트는 절대 포함하지 마세요.**
-                {"serviceSummary": "마크다운 내용", "costs": {%s}, "estimatedDays": 90}
+                **Section 2. 단계별 프로젝트 실행 계획**
+                - 프로젝트를 완성하기 위한 과정을 **[기획 - 디자인 - 개발 - 테스트/배포]** 등의 단계(Phase)로 나누세요.
+                - 각 단계별로 수행해야 할 **핵심 Task**와 그에 따른 **세부 할일(Sub-task)**을 구체적으로 나열하세요.
+                - 개발 단계에서는 기술적인 내용(DB설계, API구현 등)을 포함하세요.
+
+                **출력 형식:**
+                - 마크다운(Markdown) 형식을 사용하여 가독성 좋게 출력할 것.
+                - 불필요한 서론/결론 없이 본론 내용만 출력할 것.
 
                 ---
                 [서비스 설명]
@@ -188,58 +180,63 @@ public class ProjectService {
 
                 [요구사항]
                 %s
-                """.formatted(startDate.format(END_DATE_FORMATTER), rolesJson, description, requirement);
+                """.formatted(description, requirement);
+
+        try {
+            return geminiService.generateText(prompt);
+        } catch (Exception e) {
+            log.error("Gemini 서비스 요약 생성 실패: {}", e.getMessage(), e);
+            return DEFAULT_SERVICE_SUMMARY_TEMPLATE;
+        }
+    }
+
+    private LocalDate estimateEndDate(LocalDate startDate, String description, String requirement) {
+        String prompt = """
+                당신은 IT 프로젝트 일정 산정 전문가입니다.
+                아래 프로젝트 정보를 바탕으로, 시작일로부터 프로젝트 완료까지 필요한 예상 기간을 **일(day) 단위 숫자만** 답해주세요.
+                예시: 90
+
+                [시작일]
+                %s
+
+                [서비스 설명]
+                %s
+
+                [요구사항]
+                %s
+                """.formatted(startDate.format(END_DATE_FORMATTER), description, requirement);
 
         try {
             String result = geminiService.generateText(prompt);
-            return parseEstimation(result);
+            int days = Integer.parseInt(result.replaceAll("[^0-9]", ""));
+            if (days < 7) days = 30;
+            return startDate.plusDays(days);
         } catch (Exception e) {
-            log.error("Gemini 통합 견적 요청 실패: {}", e.getMessage(), e);
-            return getDefaultEstimation();
+            log.error("Gemini 마감일 산정 실패: {}", e.getMessage(), e);
+            return startDate.plusDays(30);
         }
     }
 
-    private GeminiEstimation parseEstimation(String raw) {
+    private int estimateCostPerRole(Role role, String description, String requirement) {
+        String prompt = """
+                당신은 IT 프로젝트 비용 산정 전문가입니다.
+                아래 프로젝트 정보를 바탕으로 '%s' 직무의 1인당 월 예상 비용(만원 단위)을 숫자만 답해주세요.
+                예시: 500
+
+                [서비스 설명]
+                %s
+
+                [요구사항]
+                %s
+                """.formatted(role.getValue(), description, requirement);
+
         try {
-            // Gemini가 ```json ... ``` 코드블록으로 감싸는 경우 strip
-            String json = raw.strip();
-            if (json.startsWith("```")) {
-                json = json.replaceFirst("```(?:json)?\\s*", "");
-                json = json.replaceFirst("\\s*```$", "");
-                json = json.strip();
-            }
-
-            JsonNode root = objectMapper.readTree(json);
-
-            // serviceSummary
-            String serviceSummary = root.path("serviceSummary").asText(DEFAULT_SERVICE_SUMMARY_TEMPLATE);
-
-            // costs
-            Map<String, Integer> costs = new HashMap<>();
-            JsonNode costsNode = root.path("costs");
-            if (costsNode.isObject()) {
-                costsNode.fields().forEachRemaining(entry ->
-                        costs.put(entry.getKey(), entry.getValue().asInt(0)));
-            }
-
-            // estimatedDays
-            int estimatedDays = root.path("estimatedDays").asInt(30);
-            if (estimatedDays < 7) {
-                estimatedDays = 30;
-            }
-
-            return new GeminiEstimation(serviceSummary, costs, estimatedDays);
+            String result = geminiService.generateText(prompt);
+            return Integer.parseInt(result.replaceAll("[^0-9]", ""));
         } catch (Exception e) {
-            log.error("Gemini 응답 JSON 파싱 실패: {}", e.getMessage(), e);
-            return getDefaultEstimation();
+            log.error("Gemini 비용 산정 실패 ({}): {}", role.name(), e.getMessage(), e);
+            return 0;
         }
-    }
-
-    private GeminiEstimation getDefaultEstimation() {
-        return new GeminiEstimation(DEFAULT_SERVICE_SUMMARY_TEMPLATE, Map.of(), 30);
-    }
-
-    private record GeminiEstimation(String serviceSummary, Map<String, Integer> costs, int estimatedDays) {
     }
 
     private static class RecruitmentInfo {
