@@ -61,6 +61,19 @@ public class ProjectService {
         String serviceSummary = generateServiceSummary(request.getDescription(), request.getRequirement());
 
         LocalDate startDate = LocalDate.now();
+        List<String> roleNames = recruitments.stream()
+                .map(r -> r.role.name())
+                .collect(Collectors.toList());
+
+        GeminiEstimation estimation = getProjectEstimation(
+                request.getDescription(), request.getRequirement(), roleNames, startDate);
+
+        String serviceSummary = estimation.serviceSummary();
+        LocalDate endDate = startDate.plusDays(estimation.estimatedDays());
+
+        for (RecruitmentInfo info : recruitments) {
+            info.cost = estimation.costs().getOrDefault(info.role.name(), 0);
+        }
         LocalDate endDate = estimateEndDate(startDate, request.getDescription(), request.getRequirement());
 
         // 전체 일 수
