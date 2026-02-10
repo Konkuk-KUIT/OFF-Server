@@ -56,6 +56,8 @@ dependencies {
 	// 토스 페이먼츠
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'com.googlecode.json-simple:json-simple:1.1'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
 }
 
 tasks.named('test') {

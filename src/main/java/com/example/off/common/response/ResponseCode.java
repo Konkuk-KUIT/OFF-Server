@@ -54,7 +54,12 @@ public enum ResponseCode {
 
     // 토큰
     INVALID_TOKEN(false, 400, "유효하지 않은 토큰입니다.", HttpStatus.BAD_REQUEST),
-    TOKEN_NOT_FOUND(false, 404, "토큰을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+    TOKEN_NOT_FOUND(false, 404, "토큰을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
+    // 결제
+    PAYLOG_NOT_FOUND(false, 404, "결제 사항을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    INVALID_PAY_STATUS(false, 400, "결제 사항이 유효하지 않습니다", HttpStatus.BAD_REQUEST),
+    TOSS_CONFIRM_FAILED(false, 502, "결제 승인에 실패하였습니다.", HttpStatus.BAD_GATEWAY);
 
     private boolean isSuccess;
     private int code;
