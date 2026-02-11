@@ -6,7 +6,8 @@ import lombok.Getter;
 public enum NotificationType {
     INVITE("파트너 매칭"),
     CHAT("채팅"),
-    PAY("결제");
+    PAY("결제"),
+    APPLICATION("지원 알림");
 
     private final String description;
 

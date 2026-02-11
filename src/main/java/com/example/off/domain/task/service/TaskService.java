@@ -1,0 +1,102 @@
+package com.example.off.domain.task.service;
+
+import com.example.off.common.exception.OffException;
+import com.example.off.common.response.ResponseCode;
+import com.example.off.domain.project.Project;
+import com.example.off.domain.project.repository.ProjectRepository;
+import com.example.off.domain.projectMember.ProjectMember;
+import com.example.off.domain.projectMember.repository.ProjectMemberRepository;
+import com.example.off.domain.task.Task;
+import com.example.off.domain.task.ToDo;
+import com.example.off.domain.task.dto.*;
+import com.example.off.domain.task.repository.TaskRepository;
+import com.example.off.domain.task.repository.ToDoRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class TaskService {
+    private final TaskRepository taskRepository;
+    private final ToDoRepository toDoRepository;
+    private final ProjectRepository projectRepository;
+    private final ProjectMemberRepository projectMemberRepository;
+
+    @Transactional
+    public CreateTaskResponse createTask(Long memberId, Long projectId, CreateTaskRequest request) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new OffException(ResponseCode.PROJECT_NOT_FOUND));
+
+        validateProjectAccess(memberId, project);
+
+        ProjectMember assignee = projectMemberRepository.findById(request.getProjectMemberId())
+                .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
+
+        Task task = Task.of(request.getName(), request.getDescription(), project, assignee);
+        taskRepository.save(task);
+
+        if (request.getToDoList() != null) {
+            for (String content : request.getToDoList()) {
+                ToDo toDo = ToDo.of(content, task);
+                toDoRepository.save(toDo);
+                task.getToDoList().add(toDo);
+            }
+        }
+
+        return CreateTaskResponse.of(task.getId());
+    }
+
+    @Transactional
+    public UpdateTaskResponse updateTask(Long memberId, Long taskId, UpdateTaskRequest request) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new OffException(ResponseCode.TASK_NOT_FOUND));
+
+        validateProjectAccess(memberId, task.getProject());
+
+        ProjectMember assignee = projectMemberRepository.findById(request.getProjectMemberId())
+                .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
+
+        task.update(request.getName(), request.getDescription(), assignee);
+
+        return UpdateTaskResponse.of(task.getId());
+    }
+
+    @Transactional
+    public void deleteTask(Long memberId, Long taskId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new OffException(ResponseCode.TASK_NOT_FOUND));
+
+        validateProjectAccess(memberId, task.getProject());
+
+        taskRepository.delete(task);
+    }
+
+    @Transactional
+    public ToggleToDoResponse toggleToDo(Long taskId, Long toDoId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new OffException(ResponseCode.TASK_NOT_FOUND));
+
+        ToDo toDo = toDoRepository.findById(toDoId)
+                .orElseThrow(() -> new OffException(ResponseCode.TODO_NOT_FOUND));
+
+        toDo.toggleDone();
+
+        int progressPercent = calculateTaskProgress(task);
+
+        return ToggleToDoResponse.of(toDo.getId(), toDo.getIsDone(), progressPercent);
+    }
+
+    private int calculateTaskProgress(Task task) {
+        if (task.getToDoList().isEmpty()) return 0;
+        long done = task.getToDoList().stream().filter(ToDo::getIsDone).count();
+        return (int) (done * 100 / task.getToDoList().size());
+    }
+
+    private void validateProjectAccess(Long memberId, Project project) {
+        if (project.getCreator().getId().equals(memberId)) return;
+        boolean isMember = project.getProjectMembers().stream()
+                .anyMatch(pm -> pm.getMember().getId().equals(memberId));
+        if (!isMember) throw new OffException(ResponseCode.UNAUTHORIZED_ACCESS);
+    }
+}

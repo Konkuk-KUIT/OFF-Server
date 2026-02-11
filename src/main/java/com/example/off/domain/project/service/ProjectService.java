@@ -9,15 +9,19 @@ import com.example.off.domain.partnerRecruit.PartnerRecruit;
 import com.example.off.domain.partnerRecruit.RecruitStatus;
 import com.example.off.domain.partnerRecruit.repository.PartnerRecruitRepository;
 import com.example.off.domain.project.Project;
+import com.example.off.domain.project.ProjectStatus;
 import com.example.off.domain.project.ProjectType;
-import com.example.off.domain.project.dto.ConfirmProjectRequest;
-import com.example.off.domain.project.dto.ConfirmProjectResponse;
-import com.example.off.domain.project.dto.CreateProjectRequest;
-import com.example.off.domain.project.dto.CreateProjectResponse;
+import com.example.off.domain.project.dto.*;
 import com.example.off.domain.project.repository.ProjectRepository;
+import com.example.off.domain.projectMember.ProjectMember;
 import com.example.off.domain.role.Role;
+import com.example.off.domain.task.Task;
+import com.example.off.domain.task.ToDo;
+import com.example.off.domain.task.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +30,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -36,6 +42,7 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final PartnerRecruitRepository partnerRecruitRepository;
     private final MemberRepository memberRepository;
+    private final TaskRepository taskRepository;
     private final GeminiService geminiService;
 
     public CreateProjectResponse estimateProject(Long memberId, CreateProjectRequest request) {
@@ -103,21 +110,15 @@ public class ProjectService {
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = LocalDate.parse(request.getEndDate(), END_DATE_FORMATTER);
 
-        // 전체 일 수
-        long days = ChronoUnit.DAYS.between(startDate, endDate);
-
-        // 30일 = 1개월
-        double months = days / 30.0;
-
         // 3. 프로젝트 진행 상태 반영
         creator.startWorking();
 
-        // 4. DB 저장
+        // 4. DB 저장 (totalEstimate는 estimateProject에서 이미 months를 포함한 값)
         Project project = new Project(
                 request.getName(),
                 request.getDescription(),
                 request.getRequirement(),
-                (long) (request.getTotalEstimate() * months),
+                (long) request.getTotalEstimate(),
                 startDate,
                 endDate,
                 projectType,
@@ -131,6 +132,141 @@ public class ProjectService {
         }
 
         return ConfirmProjectResponse.of(project.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public HomeResponse getHome(Long memberId, Pageable pageable) {
+        memberRepository.findById(memberId)
+                .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
+
+        // 진행 중인 내 프로젝트
+        List<Project> projects = projectRepository.findAllByProjectMembers_Member_IdAndStatus(
+                memberId, ProjectStatus.IN_PROGRESS);
+
+        // creator로서의 프로젝트도 포함
+        List<Project> creatorProjects = projectRepository.findAllByProjectMembers_Member_IdAndStatus(
+                memberId, ProjectStatus.IN_PROGRESS);
+
+        // 중복 제거: member + creator 프로젝트 합치기
+        List<HomeResponse.MyProjectSummary> projectSummaries = projects.stream()
+                .map(p -> {
+                    long dDay = ChronoUnit.DAYS.between(LocalDate.now(), p.getEnd());
+                    int progress = calculateProjectProgress(p);
+                    return new HomeResponse.MyProjectSummary(
+                            p.getId(), p.getName(),
+                            p.getEnd().format(END_DATE_FORMATTER),
+                            dDay, progress);
+                })
+                .toList();
+
+        // 파트너 추천: 내 OPEN 공고의 역할과 매칭되는 멤버
+        Set<Role> neededRoles = projects.stream()
+                .flatMap(p -> p.getPartnerRecruits().stream())
+                .filter(r -> r.getRecruitStatus() == RecruitStatus.OPEN)
+                .map(PartnerRecruit::getRole)
+                .collect(Collectors.toSet());
+
+        List<HomeResponse.PartnerRecommendation> partners = List.of();
+        boolean hasMore = false;
+        if (!neededRoles.isEmpty()) {
+            Page<Member> partnerPage = memberRepository.findAllByRoleIn(neededRoles, pageable);
+            partners = partnerPage.getContent().stream()
+                    .filter(m -> !m.getId().equals(memberId))
+                    .map(m -> new HomeResponse.PartnerRecommendation(
+                            m.getId(), m.getNickname(), m.getProfileImage(),
+                            m.getRole(), m.getSelfIntroduction()))
+                    .toList();
+            hasMore = partnerPage.hasNext();
+        }
+
+        return new HomeResponse(projectSummaries, partners, hasMore);
+    }
+
+    @Transactional(readOnly = true)
+    public ProjectDetailResponse getProjectDetail(Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new OffException(ResponseCode.PROJECT_NOT_FOUND));
+
+        long dDay = ChronoUnit.DAYS.between(LocalDate.now(), project.getEnd());
+
+        List<ProjectDetailResponse.RecruitSummary> recruits = project.getPartnerRecruits().stream()
+                .map(r -> new ProjectDetailResponse.RecruitSummary(
+                        r.getId(), r.getRole(), r.getNumberOfPerson(),
+                        r.getRecruitStatus().name()))
+                .toList();
+
+        List<Task> tasks = taskRepository.findAllByProject_IdOrderByCreatedAtAsc(projectId);
+        List<ProjectDetailResponse.TaskSummary> taskSummaries = tasks.stream()
+                .map(t -> {
+                    List<ProjectDetailResponse.ToDoSummary> todos = t.getToDoList().stream()
+                            .map(td -> new ProjectDetailResponse.ToDoSummary(
+                                    td.getId(), td.getContent(), td.getIsDone()))
+                            .toList();
+                    int taskProgress = t.getToDoList().isEmpty() ? 0
+                            : (int) (t.getToDoList().stream().filter(ToDo::getIsDone).count() * 100 / t.getToDoList().size());
+                    return new ProjectDetailResponse.TaskSummary(
+                            t.getId(), t.getName(), t.getDescription(),
+                            t.getProjectMember().getMember().getNickname(),
+                            taskProgress, todos);
+                })
+                .toList();
+
+        List<ProjectDetailResponse.MemberSummary> members = project.getProjectMembers().stream()
+                .map(pm -> new ProjectDetailResponse.MemberSummary(
+                        pm.getMember().getId(), pm.getMember().getNickname(),
+                        pm.getMember().getProfileImage(), pm.getRole()))
+                .toList();
+
+        int progressPercent = calculateProjectProgress(project);
+
+        return new ProjectDetailResponse(
+                project.getId(), project.getName(), project.getDescription(),
+                project.getIntroduction(),
+                project.getStart().format(END_DATE_FORMATTER),
+                project.getEnd().format(END_DATE_FORMATTER),
+                dDay, project.getStatus(), progressPercent,
+                recruits, taskSummaries, members);
+    }
+
+    @Transactional
+    public UpdateIntroductionResponse updateIntroduction(Long memberId, Long projectId, UpdateIntroductionRequest request) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new OffException(ResponseCode.PROJECT_NOT_FOUND));
+
+        if (!project.getCreator().getId().equals(memberId)) {
+            throw new OffException(ResponseCode.UNAUTHORIZED_ACCESS);
+        }
+
+        project.updateIntroduction(request.getIntroduction());
+        return UpdateIntroductionResponse.of(project.getId(), project.getIntroduction());
+    }
+
+    @Transactional
+    public void completeProject(Long memberId, Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new OffException(ResponseCode.PROJECT_NOT_FOUND));
+
+        if (!project.getCreator().getId().equals(memberId)) {
+            throw new OffException(ResponseCode.UNAUTHORIZED_ACCESS);
+        }
+
+        if (project.getStatus() == ProjectStatus.COMPLETED) {
+            throw new OffException(ResponseCode.PROJECT_ALREADY_COMPLETED);
+        }
+
+        project.complete();
+    }
+
+    private int calculateProjectProgress(Project project) {
+        List<Task> tasks = taskRepository.findAllByProject_IdOrderByCreatedAtAsc(project.getId());
+        if (tasks.isEmpty()) return 0;
+        long totalTodos = tasks.stream().mapToLong(t -> t.getToDoList().size()).sum();
+        if (totalTodos == 0) return 0;
+        long doneTodos = tasks.stream()
+                .flatMap(t -> t.getToDoList().stream())
+                .filter(ToDo::getIsDone)
+                .count();
+        return (int) (doneTodos * 100 / totalTodos);
     }
 
     private ProjectType parseProjectType(Long projectTypeId) {

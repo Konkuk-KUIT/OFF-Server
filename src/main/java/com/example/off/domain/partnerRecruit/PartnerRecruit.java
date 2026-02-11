@@ -72,4 +72,10 @@ public class PartnerRecruit {
     public void downNumberOfPerson(){
         this.numberOfPerson--;
     }
+
+    public void closeIfFull() {
+        if (this.numberOfPerson <= 0) {
+            this.recruitStatus = RecruitStatus.CLOSED;
+        }
+    }
 }

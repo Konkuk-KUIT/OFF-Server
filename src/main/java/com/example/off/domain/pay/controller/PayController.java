@@ -4,6 +4,7 @@ import com.example.off.common.exception.OffException;
 import com.example.off.common.response.BaseResponse;
 import com.example.off.common.response.ResponseCode;
 import com.example.off.domain.pay.dto.*;
+import com.example.off.domain.pay.service.PayFacade;
 import com.example.off.domain.pay.service.PayLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/members")
 public class PayController {
     private final PayLogService payLogService;
+    private final PayFacade payFacade;
 
     @PostMapping("/payments/prepare")
     public BaseResponse<PreparePayResponse> prepare(
@@ -34,7 +36,7 @@ public class PayController {
             HttpServletRequest httpServletRequest
     ) {
         Long memberId = getMemberId(httpServletRequest);
-        return BaseResponse.ok(payLogService.confirm(memberId, req));
+        return BaseResponse.ok(payFacade.confirm(memberId, req));
     }
 
     private Long getMemberId(HttpServletRequest req) {

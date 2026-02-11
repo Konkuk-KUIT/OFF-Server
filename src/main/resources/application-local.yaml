@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:offdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create
+  sql:
+    init:
+      mode: always
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+gemini:
+  api-key: dummy-key
+
+jwt:
+  secret: local-test-secret-key-must-be-at-least-256-bits-long-for-hs256
+
+payment:
+  client:
+    key: test_ck_dummy
+  secret:
+    key: test_sk_dummy

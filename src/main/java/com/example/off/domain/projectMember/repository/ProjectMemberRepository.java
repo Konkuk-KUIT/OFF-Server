@@ -14,6 +14,7 @@ import java.util.Optional;
 public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Long> {
     List<ProjectMember> findAllByMember_Id(Long memberId);
     Optional<ProjectMember> findByProjectAndMember(Project project, Member member);
+    boolean existsByProjectAndMember(Project project, Member member);
 
     @Query("""
                 select pm

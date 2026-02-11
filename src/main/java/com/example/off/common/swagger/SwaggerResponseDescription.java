@@ -81,6 +81,79 @@ public enum SwaggerResponseDescription {
     ))),
 
 
+    GET_HOME(new LinkedHashSet<>(Set.of(
+            MEMBER_NOT_FOUND
+    ))),
+
+    GET_PROJECT_DETAIL(new LinkedHashSet<>(Set.of(
+            PROJECT_NOT_FOUND
+    ))),
+
+    UPDATE_INTRODUCTION(new LinkedHashSet<>(Set.of(
+            PROJECT_NOT_FOUND,
+            UNAUTHORIZED_ACCESS
+    ))),
+
+    COMPLETE_PROJECT(new LinkedHashSet<>(Set.of(
+            PROJECT_NOT_FOUND,
+            UNAUTHORIZED_ACCESS,
+            PROJECT_ALREADY_COMPLETED
+    ))),
+
+    CREATE_TASK(new LinkedHashSet<>(Set.of(
+            PROJECT_NOT_FOUND,
+            UNAUTHORIZED_ACCESS
+    ))),
+
+    UPDATE_TASK(new LinkedHashSet<>(Set.of(
+            TASK_NOT_FOUND,
+            UNAUTHORIZED_ACCESS
+    ))),
+
+    DELETE_TASK(new LinkedHashSet<>(Set.of(
+            TASK_NOT_FOUND,
+            UNAUTHORIZED_ACCESS
+    ))),
+
+    TOGGLE_TODO(new LinkedHashSet<>(Set.of(
+            TASK_NOT_FOUND,
+            TODO_NOT_FOUND
+    ))),
+
+    INVITE_PARTNER(new LinkedHashSet<>(Set.of(
+            PROJECT_NOT_FOUND,
+            MEMBER_NOT_FOUND,
+            RECRUIT_NOT_FOUND,
+            RECRUIT_CLOSED,
+            ALREADY_APPLIED,
+            UNAUTHORIZED_ACCESS
+    ))),
+
+    ACCEPT_INVITATION(new LinkedHashSet<>(Set.of(
+            APPLICATION_NOT_FOUND,
+            INVALID_APPLICATION_STATUS,
+            RECRUIT_CLOSED,
+            ALREADY_PROJECT_MEMBER
+    ))),
+
+    APPLY_PROJECT(new LinkedHashSet<>(Set.of(
+            PROJECT_NOT_FOUND,
+            RECRUIT_NOT_FOUND,
+            RECRUIT_CLOSED,
+            ALREADY_APPLIED
+    ))),
+
+    ACCEPT_APPLICATION(new LinkedHashSet<>(Set.of(
+            PROJECT_NOT_FOUND,
+            APPLICATION_NOT_FOUND,
+            INVALID_APPLICATION_STATUS,
+            UNAUTHORIZED_ACCESS
+    ))),
+
+    GET_PARTNER_PROFILE(new LinkedHashSet<>(Set.of(
+            MEMBER_NOT_FOUND
+    ))),
+
     DEFAULT(new LinkedHashSet<>());
 
     private final Set<ResponseCode> responseCodeSet;

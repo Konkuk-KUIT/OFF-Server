@@ -77,6 +77,13 @@ public class Project {
     @OneToMany(mappedBy = "project")
     private List<PartnerRecruit> partnerRecruits = new ArrayList<>();
 
+    @Column(length = 200)
+    private String introduction;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ProjectStatus status;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_id", nullable = false)
     private Member creator;
@@ -91,5 +98,14 @@ public class Project {
         this.end = end;
         this.projectType = projectType;
         this.creator = creator;
+        this.status = ProjectStatus.IN_PROGRESS;
+    }
+
+    public void updateIntroduction(String introduction) {
+        this.introduction = introduction;
+    }
+
+    public void complete() {
+        this.status = ProjectStatus.COMPLETED;
     }
 }
