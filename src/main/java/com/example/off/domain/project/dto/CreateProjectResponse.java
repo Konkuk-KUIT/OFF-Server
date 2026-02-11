@@ -24,10 +24,7 @@ public class CreateProjectResponse {
         private Integer count;
         private List<PartnerResponse> candidatePartners;
 
-        public static EstimateResponse of(String role, Integer cost, Integer count, List<Member> members) {
-            List<PartnerResponse> partners = members.stream()
-                    .map(PartnerResponse::from)
-                    .toList();
+        public static EstimateResponse of(String role, Integer cost, Integer count, List<PartnerResponse> partners) {
             return new EstimateResponse(role, cost, count, partners);
         }
     }
@@ -39,13 +36,15 @@ public class CreateProjectResponse {
         private String nickname;
         private String introduction;
         private Integer projectCount;
+        private Integer suggestedCost;  // AI가 추천한 적정 가격
 
-        public static PartnerResponse from(Member member) {
+        public static PartnerResponse of(Member member, Integer suggestedCost) {
             return new PartnerResponse(
                     member.getId(),
                     member.getNickname(),
                     member.getSelfIntroduction(),
-                    member.getProjectCountType().getCount()
+                    member.getProjectCountType().getCount(),
+                    suggestedCost
             );
         }
     }

@@ -26,9 +26,10 @@ public class ProjectController {
     @PostMapping("/estimate")
     @CustomExceptionDescription(SwaggerResponseDescription.ESTIMATE_PROJECT)
     public BaseResponse<CreateProjectResponse> estimateProject(
-            @Parameter(hidden = true) @RequestParam(defaultValue = "1") Long memberId,
-            @RequestBody CreateProjectRequest request
+            @RequestBody CreateProjectRequest request,
+            HttpServletRequest httpServletRequest
     ) {
+        Long memberId = getMemberId(httpServletRequest);
         CreateProjectResponse data = projectService.estimateProject(memberId, request);
         return BaseResponse.ok(data);
     }
@@ -37,9 +38,10 @@ public class ProjectController {
     @PostMapping("/confirm")
     @CustomExceptionDescription(SwaggerResponseDescription.CONFIRM_PROJECT)
     public BaseResponse<ConfirmProjectResponse> confirmProject(
-            @Parameter(hidden = true) @RequestParam(defaultValue = "1") Long memberId,
-            @RequestBody ConfirmProjectRequest request
+            @RequestBody ConfirmProjectRequest request,
+            HttpServletRequest httpServletRequest
     ) {
+        Long memberId = getMemberId(httpServletRequest);
         ConfirmProjectResponse data = projectService.confirmProject(memberId, request);
         return BaseResponse.ok(data);
     }

@@ -59,6 +59,20 @@ public class TaskService {
 
         task.update(request.getName(), request.getDescription(), assignee);
 
+        // ToDo 리스트 업데이트 (제공된 경우)
+        if (request.getToDoList() != null) {
+            // 기존 ToDo 전부 삭제
+            toDoRepository.deleteAll(task.getToDoList());
+            task.getToDoList().clear();
+
+            // 새 ToDo 생성
+            for (String content : request.getToDoList()) {
+                ToDo toDo = ToDo.of(content, task);
+                toDoRepository.save(toDo);
+                task.getToDoList().add(toDo);
+            }
+        }
+
         return UpdateTaskResponse.of(task.getId());
     }
 

@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,4 +20,6 @@ public class UpdateTaskRequest {
 
     @NotNull
     private Long projectMemberId;
+
+    private List<String> toDoList;  // 세부태스크 목록 (null이면 수정 안 함)
 }

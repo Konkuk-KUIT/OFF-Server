@@ -66,6 +66,7 @@ public enum ResponseCode {
     ALREADY_APPLIED(false, 409, "이미 지원한 공고입니다.", HttpStatus.CONFLICT),
     INVALID_APPLICATION_STATUS(false, 400, "유효하지 않은 지원 상태입니다.", HttpStatus.BAD_REQUEST),
     ALREADY_PROJECT_MEMBER(false, 409, "이미 프로젝트 멤버입니다.", HttpStatus.CONFLICT),
+    ROLE_MISMATCH(false, 400, "파트너의 역할과 모집 역할이 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
 
     // 태스크
     TASK_NOT_FOUND(false, 404, "태스크를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),

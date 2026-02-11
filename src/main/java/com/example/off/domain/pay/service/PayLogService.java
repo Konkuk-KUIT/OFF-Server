@@ -42,13 +42,18 @@ public class PayLogService {
         PartnerApplication application = partnerApplicationRepository.findById(req.applicationId())
                 .orElseThrow(() -> new OffException(ResponseCode.APPLICATION_NOT_FOUND));
 
-        if (application.getApplicationStatus() != ApplicationStatus.ACCEPT) {
+        // 초대(isFromProject=true)인 경우: 파트너가 ACCEPT해야 결제 가능
+        // 지원(isFromProject=false)인 경우: 기획자가 바로 결제 가능 (WAITING 상태)
+        if (application.getIsFromProject() && application.getApplicationStatus() != ApplicationStatus.ACCEPT) {
+            throw new OffException(ResponseCode.INVALID_APPLICATION_STATUS);
+        }
+        if (!application.getIsFromProject() && application.getApplicationStatus() != ApplicationStatus.WAITING) {
             throw new OffException(ResponseCode.INVALID_APPLICATION_STATUS);
         }
 
         PartnerRecruit recruit = application.getPartnerRecruit();
 
-        // recruit.cost는 confirmProject에서 이미 months를 포함한 값
+        // recruit.cost는 해당 프로젝트에서 직군별로 고정된 가격
         long amount = (long) recruit.getCost();
 
         String orderId = "order_" + UUID.randomUUID().toString().replace("-", "");
@@ -93,6 +98,12 @@ public class PayLogService {
         }
 
         PartnerApplication application = payLog.getApplication();
+
+        // 지원(isFromProject=false)인 경우 결제 시점에 자동 승인
+        if (!application.getIsFromProject() && application.getApplicationStatus() == ApplicationStatus.WAITING) {
+            application.accept();
+        }
+
         PartnerRecruit recruit = partnerRecruitRepository.findByIdForUpdate(application.getPartnerRecruit().getId())
                 .orElseThrow(() -> new OffException(ResponseCode.RECRUIT_NOT_FOUND));
         Project project = recruit.getProject();

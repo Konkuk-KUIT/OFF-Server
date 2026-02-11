@@ -48,6 +48,11 @@ public class PartnerMatchingService {
 
         Role role = parseRole(request.getRole());
 
+        // 파트너의 역할과 모집 역할이 일치하는지 확인
+        if (partner.getRole() != role) {
+            throw new OffException(ResponseCode.ROLE_MISMATCH);
+        }
+
         PartnerRecruit recruit = partnerRecruitRepository.findByProjectAndRole(project, role)
                 .orElseThrow(() -> new OffException(ResponseCode.RECRUIT_NOT_FOUND));
 
@@ -57,6 +62,11 @@ public class PartnerMatchingService {
 
         if (partnerApplicationRepository.existsByMemberAndPartnerRecruit(partner, recruit)) {
             throw new OffException(ResponseCode.ALREADY_APPLIED);
+        }
+
+        // 모집 정원 확인
+        if (recruit.getNumberOfPerson() <= 0) {
+            throw new OffException(ResponseCode.RECRUIT_CLOSED);
         }
 
         PartnerApplication application = PartnerApplication.of(partner, recruit, true);
@@ -85,12 +95,13 @@ public class PartnerMatchingService {
             throw new OffException(ResponseCode.INVALID_APPLICATION_STATUS);
         }
 
-        application.accept();
-
-        PartnerRecruit recruit = partnerRecruitRepository.findByIdForUpdate(application.getPartnerRecruit().getId())
-                .orElseThrow(() -> new OffException(ResponseCode.RECRUIT_NOT_FOUND));
+        PartnerRecruit recruit = application.getPartnerRecruit();
 
         if (recruit.getRecruitStatus() != RecruitStatus.OPEN) {
+            throw new OffException(ResponseCode.RECRUIT_CLOSED);
+        }
+
+        if (recruit.getNumberOfPerson() <= 0) {
             throw new OffException(ResponseCode.RECRUIT_CLOSED);
         }
 
@@ -101,20 +112,17 @@ public class PartnerMatchingService {
             throw new OffException(ResponseCode.ALREADY_PROJECT_MEMBER);
         }
 
-        ProjectMember projectMember = ProjectMember.of(project, partner);
-        projectMemberRepository.save(projectMember);
+        application.accept();
 
-        recruit.downNumberOfPerson();
-        recruit.closeIfFull();
-
+        // 기획자에게 결제 알림
         notificationService.sendNotification(
                 project.getCreator().getId(),
-                partner.getNickname() + "님이 파트너 제안을 수락했어요!",
-                "/projects/" + project.getId(),
+                partner.getNickname() + "님이 파트너 제안을 수락했어요! 결제를 진행해주세요.",
+                "/payments/prepare/" + application.getId(),
                 NotificationType.INVITE
         );
 
-        return AcceptInvitationResponse.of(projectMember.getId());
+        return AcceptInvitationResponse.of(application.getId());
     }
 
     @Transactional
@@ -131,10 +139,20 @@ public class PartnerMatchingService {
 
         Role role = parseRole(request.getRole());
 
+        // 지원자의 역할과 모집 역할이 일치하는지 확인
+        if (applicant.getRole() != role) {
+            throw new OffException(ResponseCode.ROLE_MISMATCH);
+        }
+
         PartnerRecruit recruit = partnerRecruitRepository.findByProjectAndRole(project, role)
                 .orElseThrow(() -> new OffException(ResponseCode.RECRUIT_NOT_FOUND));
 
         if (recruit.getRecruitStatus() != RecruitStatus.OPEN) {
+            throw new OffException(ResponseCode.RECRUIT_CLOSED);
+        }
+
+        // 모집 정원 확인
+        if (recruit.getNumberOfPerson() <= 0) {
             throw new OffException(ResponseCode.RECRUIT_CLOSED);
         }
 
@@ -147,45 +165,14 @@ public class PartnerMatchingService {
 
         notificationService.sendNotification(
                 project.getCreator().getId(),
-                applicant.getNickname() + "님이 " + role.getValue() + " 역할로 지원했어요!",
-                "/projects/" + project.getId() + "/applications/" + application.getId(),
+                applicant.getNickname() + "님이 " + role.getValue() + " 역할로 지원했어요! (예상 비용: " + recruit.getCost() + "만원)",
+                "/payments/prepare/" + application.getId(),
                 NotificationType.APPLICATION
         );
 
         return ApplyProjectResponse.of(application.getId());
     }
 
-    @Transactional
-    public AcceptApplicationResponse acceptApplication(Long memberId, Long projectId, Long applicationId) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new OffException(ResponseCode.PROJECT_NOT_FOUND));
-
-        if (!project.getCreator().getId().equals(memberId)) {
-            throw new OffException(ResponseCode.UNAUTHORIZED_ACCESS);
-        }
-
-        PartnerApplication application = partnerApplicationRepository.findById(applicationId)
-                .orElseThrow(() -> new OffException(ResponseCode.APPLICATION_NOT_FOUND));
-
-        if (application.getApplicationStatus() != ApplicationStatus.WAITING) {
-            throw new OffException(ResponseCode.INVALID_APPLICATION_STATUS);
-        }
-
-        application.accept();
-
-        PartnerRecruit recruit = application.getPartnerRecruit();
-        long amount = (long) recruit.getCost();
-
-        String orderId = "order_" + UUID.randomUUID().toString().replace("-", "");
-        Member payer = memberRepository.findById(memberId)
-                .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
-
-        PayLog payLog = PayLog.ready(orderId, amount, payer, application);
-        payLogRepository.save(payLog);
-
-        String orderName = "파트너 매칭 결제";
-        return AcceptApplicationResponse.of(orderId, amount, orderName);
-    }
 
     @Transactional(readOnly = true)
     public PartnerProfileResponse getPartnerProfile(Long partnerId) {

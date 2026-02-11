@@ -55,18 +55,6 @@ public class PartnerMatchingController {
         return BaseResponse.ok(partnerMatchingService.apply(memberId, projectId, request));
     }
 
-    @Operation(summary = "지원 수락", description = "기획자가 파트너의 지원을 수락합니다. PayLog가 자동 생성됩니다.")
-    @PostMapping("/projects/{projectId}/applications/{applicationId}/accept")
-    @CustomExceptionDescription(SwaggerResponseDescription.ACCEPT_APPLICATION)
-    public BaseResponse<AcceptApplicationResponse> acceptApplication(
-            @PathVariable Long projectId,
-            @PathVariable Long applicationId,
-            HttpServletRequest httpServletRequest
-    ) {
-        Long memberId = getMemberId(httpServletRequest);
-        return BaseResponse.ok(partnerMatchingService.acceptApplication(memberId, projectId, applicationId));
-    }
-
     @Operation(summary = "파트너 프로필 조회", description = "파트너의 프로필 및 포트폴리오를 조회합니다.")
     @GetMapping("/partners/{partnerId}")
     @CustomExceptionDescription(SwaggerResponseDescription.GET_PARTNER_PROFILE)

@@ -26,13 +26,12 @@ import static com.example.off.domain.member.Member.SELF_INTRO_MAX_LENGTH;
 public class MemberService {
     private final MemberRepository memberRepository;
     private final ProjectMemberRepository projectMemberRepository;
-    LocalDateTime now = LocalDateTime.now();
 
     @Transactional(readOnly = true)
     public ProfileResponse getMyProfile(Long memberId){
         Member member = findMember(memberId); //회원 찾기
         //현재 시점을 기준으로 진행중인 project 찾기
-//        boolean isWorking = projectMemberRepository.existsWorkingProject(memberId, now);
+        LocalDateTime now = LocalDateTime.now();
         Optional<ProjectMember> workingProjectList = projectMemberRepository.findWorkingProject(memberId, now);
         if (workingProjectList.isEmpty()) //진행 중인 프로젝트 없음.
             return ProfileResponse.of(member, null);
@@ -66,6 +65,11 @@ public class MemberService {
             member.updateNickname(nickname);
         }
 
+        //프로필 이미지 수정
+        if (updateReq.profileImage()!=null){
+            member.setProfileImage(updateReq.profileImage());
+        }
+
         //프로젝트 경험 횟수 수정
         if (updateReq.projectCount()!=null)
             member.updateProjectCount(updateReq.projectCount());
@@ -87,7 +91,7 @@ public class MemberService {
                         pr.description(),
                         pr.link()
                 );
-                member.getPortfolios().add(portfolio);
+                member.addPortfolio(portfolio);
             }
         }
 

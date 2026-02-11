@@ -91,6 +91,7 @@ public class PayLog {
         this.paymentKey = paymentKey;
         this.projectMember = projectMember;
         this.status = PayStatus.PAID;
+        this.paidAt = LocalDateTime.now();
     }
 
     public void markFailed() {

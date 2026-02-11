@@ -40,7 +40,7 @@ public class PayController {
     }
 
     private Long getMemberId(HttpServletRequest req) {
-        Object attr = (Long) req.getAttribute("memberId");
+        Object attr = req.getAttribute("memberId");
         if (attr instanceof Long id) return id;
         throw new OffException(ResponseCode.INVALID_TOKEN);
     }

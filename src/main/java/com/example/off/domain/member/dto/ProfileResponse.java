@@ -16,6 +16,7 @@ public class ProfileResponse {
     //프로필 조회용
     private String name;
     private String nickname; //공통 필드
+    private String profileImage;  // 프로필 이미지
     private Boolean isWorking;
     private String projectName;  //내가 속한 플젝명
     private Role role;
@@ -38,6 +39,7 @@ public class ProfileResponse {
         return new ProfileResponse(
                 member.getName(),
                 member.getNickname(),
+                member.getProfileImage(),
                 member.getIsWorking(),
                 projectName,
                 member.getRole(),

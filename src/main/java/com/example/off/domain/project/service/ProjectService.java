@@ -5,8 +5,12 @@ import com.example.off.common.gemini.GeminiService;
 import com.example.off.common.response.ResponseCode;
 import com.example.off.domain.member.Member;
 import com.example.off.domain.member.repository.MemberRepository;
+import com.example.off.domain.notification.NotificationType;
+import com.example.off.domain.notification.service.NotificationService;
+import com.example.off.domain.partnerRecruit.PartnerApplication;
 import com.example.off.domain.partnerRecruit.PartnerRecruit;
 import com.example.off.domain.partnerRecruit.RecruitStatus;
+import com.example.off.domain.partnerRecruit.repository.PartnerApplicationRepository;
 import com.example.off.domain.partnerRecruit.repository.PartnerRecruitRepository;
 import com.example.off.domain.project.Project;
 import com.example.off.domain.project.ProjectStatus;
@@ -14,10 +18,14 @@ import com.example.off.domain.project.ProjectType;
 import com.example.off.domain.project.dto.*;
 import com.example.off.domain.project.repository.ProjectRepository;
 import com.example.off.domain.projectMember.ProjectMember;
+import com.example.off.domain.projectMember.repository.ProjectMemberRepository;
 import com.example.off.domain.role.Role;
 import com.example.off.domain.task.Task;
 import com.example.off.domain.task.ToDo;
 import com.example.off.domain.task.repository.TaskRepository;
+import com.example.off.domain.task.repository.ToDoRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -41,9 +49,13 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final PartnerRecruitRepository partnerRecruitRepository;
+    private final PartnerApplicationRepository partnerApplicationRepository;
     private final MemberRepository memberRepository;
+    private final ProjectMemberRepository projectMemberRepository;
     private final TaskRepository taskRepository;
+    private final ToDoRepository toDoRepository;
     private final GeminiService geminiService;
+    private final NotificationService notificationService;
 
     public CreateProjectResponse estimateProject(Long memberId, CreateProjectRequest request) {
         // 1. 검증 및 데이터 조회
@@ -74,20 +86,24 @@ public class ProjectService {
             info.cost = (int)(estimateCostPerRole(info.role, request.getDescription(), request.getRequirement()) * months);
         }
 
+        // 3. Gemini로 파트너 추천 및 개별 가격 산정
+        List<CreateProjectResponse.EstimateResponse> estimateList = new ArrayList<>();
+        int totalEstimate = 0;
 
-        // 3. 견적 계산
-        int totalEstimate = recruitments.stream()
-                .mapToInt(r -> r.cost * r.count)
-                .sum();
+        for (RecruitmentInfo info : recruitments) {
+            List<CreateProjectResponse.PartnerResponse> recommendedPartners =
+                    recommendPartners(info.role, info.candidates, request.getDescription(),
+                                    request.getRequirement(), info.cost, months);
+
+            estimateList.add(CreateProjectResponse.EstimateResponse.of(
+                    info.role.name(), info.cost, info.count, recommendedPartners));
+
+            totalEstimate += info.cost * info.count;
+        }
 
         // 4. 응답 구성 (DB 저장 없음 — 미리보기용)
         List<String> recruitmentRoles = recruitments.stream()
                 .map(r -> r.role.name())
-                .toList();
-
-        List<CreateProjectResponse.EstimateResponse> estimateList = recruitments.stream()
-                .map(r -> CreateProjectResponse.EstimateResponse.of(
-                        r.role.name(), r.cost, r.count, r.candidates))
                 .toList();
 
         return new CreateProjectResponse(
@@ -125,61 +141,199 @@ public class ProjectService {
                 creator);
         projectRepository.save(project);
 
+        // 5. creator를 ProjectMember로 추가 (기획자도 프로젝트 멤버여야 태스크 생성 가능)
+        ProjectMember creatorMember = ProjectMember.of(project, creator);
+        projectMemberRepository.save(creatorMember);
+
+        // 6. 파트너 모집 공고 생성 및 선택한 파트너에게 제안
         for (ConfirmProjectRequest.RecruitmentRequest r : request.getRecruitmentList()) {
             Role role = parseRole(r.getRoleId());
-            partnerRecruitRepository.save(
+            PartnerRecruit recruit = partnerRecruitRepository.save(
                     new PartnerRecruit(project, role, r.getCount(), RecruitStatus.OPEN, r.getCost()));
+
+            // 선택한 파트너들에게 제안
+            if (r.getSelectedPartnerIds() != null && !r.getSelectedPartnerIds().isEmpty()) {
+                for (Long partnerId : r.getSelectedPartnerIds()) {
+                    Member partner = memberRepository.findById(partnerId)
+                            .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
+
+                    // 이미 지원했는지 확인
+                    if (partnerApplicationRepository.existsByMemberAndPartnerRecruit(partner, recruit)) {
+                        continue;
+                    }
+
+                    // PartnerApplication 생성 (기획자 제안, 가격은 recruit의 cost 사용)
+                    PartnerApplication application = PartnerApplication.of(partner, recruit, true);
+                    partnerApplicationRepository.save(application);
+
+                    // 파트너에게 알림
+                    notificationService.sendNotification(
+                            partner.getId(),
+                            project.getName() + " 프로젝트에서 파트너 제안이 도착했어요!",
+                            "/invitations/" + application.getId(),
+                            NotificationType.INVITE
+                    );
+                }
+            }
         }
+
+        // 7. Gemini로 Task 자동 생성
+        generateAndSaveTasks(project, creatorMember, request.getDescription(), request.getRequirement());
 
         return ConfirmProjectResponse.of(project.getId());
     }
 
+    private void generateAndSaveTasks(Project project, ProjectMember creator, String description, String requirement) {
+        String prompt = """
+                당신은 프로젝트 관리 전문가입니다.
+                아래 프로젝트를 성공적으로 완료하기 위한 주요 Task와 세부 ToDo를 추천해주세요.
+
+                [프로젝트 정보]
+                - 프로젝트명: %s
+                - 서비스 설명: %s
+                - 요구사항: %s
+
+                다음 형식의 JSON으로 응답해주세요:
+                {
+                  "tasks": [
+                    {
+                      "name": "Task 제목 (50자 이내)",
+                      "description": "Task 설명 (200자 이내)",
+                      "todos": ["할일1", "할일2", "할일3"]
+                    }
+                  ]
+                }
+
+                주의사항:
+                - Task는 3~7개 정도로 구성
+                - 각 Task는 구체적이고 실행 가능해야 함
+                - 각 Task마다 3~5개의 세부 ToDo 포함
+                - 개발 프로세스 순서에 맞게 구성 (기획 → 설계 → 개발 → 테스트)
+                - JSON 형식만 출력하고 다른 텍스트는 포함하지 마세요
+                """.formatted(project.getName(), description, requirement);
+
+        try {
+            String result = geminiService.generateTextSafe(prompt, "{}");
+            parseTasks(result, project, creator);
+        } catch (Exception e) {
+            // Gemini 실패 시 기본 Task 생성
+            createDefaultTasks(project, creator);
+        }
+    }
+
+    private void parseTasks(String jsonResult, Project project, ProjectMember creator) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(jsonResult);
+            JsonNode tasksNode = root.get("tasks");
+
+            if (tasksNode != null && tasksNode.isArray()) {
+                for (JsonNode taskNode : tasksNode) {
+                    String name = taskNode.get("name").asText();
+                    String description = taskNode.get("description").asText();
+
+                    Task task = Task.of(name, description, project, creator);
+                    taskRepository.save(task);
+
+                    JsonNode todosNode = taskNode.get("todos");
+                    if (todosNode != null && todosNode.isArray()) {
+                        for (JsonNode todoNode : todosNode) {
+                            ToDo toDo = ToDo.of(todoNode.asText(), task);
+                            toDoRepository.save(toDo);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // JSON 파싱 실패 시 기본 Task 생성
+            createDefaultTasks(project, creator);
+        }
+    }
+
+    private void createDefaultTasks(Project project, ProjectMember creator) {
+        // 폴백: 기본 Task 생성
+        String[][] defaultTasks = {
+            {"요구사항 분석 및 기획", "프로젝트 요구사항을 상세히 분석하고 기획서를 작성합니다.",
+             "요구사항 정리", "사용자 플로우 설계", "기능 명세서 작성"},
+            {"UI/UX 디자인", "사용자 인터페이스와 사용자 경험을 설계합니다.",
+             "와이어프레임 작성", "프로토타입 제작", "디자인 시스템 구축"},
+            {"개발 환경 구축", "개발에 필요한 환경을 설정합니다.",
+             "개발 도구 설치", "데이터베이스 설계", "프로젝트 구조 설정"},
+            {"핵심 기능 개발", "주요 기능을 개발합니다.",
+             "API 설계", "핵심 로직 구현", "데이터 연동"},
+            {"테스트 및 배포", "개발된 기능을 테스트하고 배포합니다.",
+             "단위 테스트 작성", "통합 테스트", "배포 환경 설정"}
+        };
+
+        for (String[] taskData : defaultTasks) {
+            Task task = Task.of(taskData[0], taskData[1], project, creator);
+            taskRepository.save(task);
+
+            for (int i = 2; i < taskData.length; i++) {
+                ToDo toDo = ToDo.of(taskData[i], task);
+                toDoRepository.save(toDo);
+            }
+        }
+    }
+
     @Transactional(readOnly = true)
     public HomeResponse getHome(Long memberId, Pageable pageable) {
-        memberRepository.findById(memberId)
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
 
-        // 진행 중인 내 프로젝트
-        List<Project> projects = projectRepository.findAllByProjectMembers_Member_IdAndStatus(
-                memberId, ProjectStatus.IN_PROGRESS);
+        // PM이고 진행 중인 본인 프로젝트가 없으면 프로젝트 생성 버튼 표시
+        boolean showCreateButton = false;
+        if (member.getRole() == Role.PM) {
+            List<Project> myProjects = projectRepository.findAllByCreator_IdAndStatus(
+                    memberId, ProjectStatus.IN_PROGRESS);
+            showCreateButton = myProjects.isEmpty();
+        }
 
-        // creator로서의 프로젝트도 포함
-        List<Project> creatorProjects = projectRepository.findAllByProjectMembers_Member_IdAndStatus(
-                memberId, ProjectStatus.IN_PROGRESS);
-
-        // 중복 제거: member + creator 프로젝트 합치기
-        List<HomeResponse.MyProjectSummary> projectSummaries = projects.stream()
+        // 다른 사람들의 진행 중인 프로젝트 조회 (본인이 생성한 프로젝트 제외)
+        List<Project> allProjects = projectRepository.findAllByStatus(ProjectStatus.IN_PROGRESS);
+        List<HomeResponse.MyProjectSummary> projectSummaries = allProjects.stream()
+                .filter(p -> !p.getCreator().getId().equals(memberId))
                 .map(p -> {
                     long dDay = ChronoUnit.DAYS.between(LocalDate.now(), p.getEnd());
                     int progress = calculateProjectProgress(p);
+
+                    // 모집 중인 역할 목록
+                    List<HomeResponse.RecruitInfo> recruitList = p.getPartnerRecruits().stream()
+                            .filter(r -> r.getRecruitStatus() == RecruitStatus.OPEN)
+                            .map(r -> new HomeResponse.RecruitInfo(r.getRole(), r.getNumberOfPerson()))
+                            .toList();
+
+                    boolean isRecruiting = !recruitList.isEmpty();
+
                     return new HomeResponse.MyProjectSummary(
                             p.getId(), p.getName(),
+                            p.getCreator().getNickname(),
                             p.getEnd().format(END_DATE_FORMATTER),
-                            dDay, progress);
+                            dDay, progress, isRecruiting, recruitList);
                 })
                 .toList();
 
-        // 파트너 추천: 내 OPEN 공고의 역할과 매칭되는 멤버
-        Set<Role> neededRoles = projects.stream()
+        // 파트너 추천: 모든 진행 중인 프로젝트의 OPEN 공고와 매칭되는 멤버
+        Set<Role> neededRoles = allProjects.stream()
                 .flatMap(p -> p.getPartnerRecruits().stream())
                 .filter(r -> r.getRecruitStatus() == RecruitStatus.OPEN)
                 .map(PartnerRecruit::getRole)
                 .collect(Collectors.toSet());
 
         List<HomeResponse.PartnerRecommendation> partners = List.of();
-        boolean hasMore = false;
         if (!neededRoles.isEmpty()) {
             Page<Member> partnerPage = memberRepository.findAllByRoleIn(neededRoles, pageable);
             partners = partnerPage.getContent().stream()
                     .filter(m -> !m.getId().equals(memberId))
                     .map(m -> new HomeResponse.PartnerRecommendation(
                             m.getId(), m.getNickname(), m.getProfileImage(),
-                            m.getRole(), m.getSelfIntroduction()))
+                            m.getRole(), m.getSelfIntroduction(),
+                            m.getProjectCountType().getValue(),
+                            m.getPortfolios().size()))
                     .toList();
-            hasMore = partnerPage.hasNext();
         }
 
-        return new HomeResponse(projectSummaries, partners, hasMore);
+        return new HomeResponse(showCreateButton, projectSummaries, partners);
     }
 
     @Transactional(readOnly = true)
@@ -373,6 +527,131 @@ public class ProjectService {
             log.error("Gemini 비용 산정 실패 ({}): {}", role.name(), e.getMessage(), e);
             return 0;
         }
+    }
+
+    private List<CreateProjectResponse.PartnerResponse> recommendPartners(
+            Role role, List<Member> candidates, String description,
+            String requirement, int avgCost, double months) {
+
+        if (candidates.isEmpty()) {
+            return List.of();
+        }
+
+        // 후보 파트너 정보 포맷팅
+        StringBuilder candidateInfo = new StringBuilder();
+        for (int i = 0; i < candidates.size(); i++) {
+            Member m = candidates.get(i);
+            candidateInfo.append(String.format(
+                    "%d. 닉네임: %s, 자기소개: %s, 프로젝트 경험: %d회\n",
+                    i + 1, m.getNickname(), m.getSelfIntroduction(),
+                    m.getProjectCountType().getCount()
+            ));
+        }
+
+        String prompt = """
+                당신은 IT 프로젝트 파트너 매칭 전문가입니다.
+                아래 프로젝트에 적합한 %s 파트너를 추천하고, 각 파트너의 적정 비용을 산정해주세요.
+
+                [프로젝트 정보]
+                - 서비스 설명: %s
+                - 요구사항: %s
+                - 평균 예상 비용: %d만원 (프로젝트 전체 기간)
+
+                [후보 파트너 목록]
+                %s
+
+                출력 형식 (JSON):
+                각 파트너별로 추천 여부와 적정 비용을 다음 형식으로 답해주세요.
+                추천하고 싶은 파트너만 포함하되, 최소 3명, 최대 10명을 선택하세요.
+                비용은 경험과 프로젝트 적합도에 따라 평균 비용의 70%%~150%% 범위 내에서 산정하세요.
+
+                [
+                  {"nickname": "파트너닉네임", "cost": 숫자만}
+                ]
+
+                예시:
+                [
+                  {"nickname": "박개발", "cost": 6000000},
+                  {"nickname": "김코딩", "cost": 5500000}
+                ]
+                """.formatted(
+                role.getValue(), description, requirement, avgCost, candidateInfo.toString()
+        );
+
+        try {
+            String result = geminiService.generateTextSafe(prompt, "[]");
+            return parsePartnerRecommendations(result, candidates, avgCost);
+        } catch (Exception e) {
+            log.error("Gemini 파트너 추천 실패 ({}): {}", role.name(), e.getMessage(), e);
+            return fallbackRecommendPartners(candidates, avgCost);
+        }
+    }
+
+    private List<CreateProjectResponse.PartnerResponse> parsePartnerRecommendations(
+            String jsonResult, List<Member> candidates, int avgCost) {
+        try {
+            // JSON 파싱 (간단한 방식)
+            List<CreateProjectResponse.PartnerResponse> result = new ArrayList<>();
+
+            // JSON 배열 추출
+            int start = jsonResult.indexOf('[');
+            int end = jsonResult.lastIndexOf(']');
+            if (start == -1 || end == -1) {
+                return fallbackRecommendPartners(candidates, avgCost);
+            }
+
+            String jsonArray = jsonResult.substring(start + 1, end);
+            String[] items = jsonArray.split("\\},\\s*\\{");
+
+            for (String item : items) {
+                item = item.replaceAll("[\\[\\]{}]", "").trim();
+                if (item.isEmpty()) continue;
+
+                String nickname = extractJsonValue(item, "nickname");
+                String costStr = extractJsonValue(item, "cost");
+
+                if (nickname != null && costStr != null) {
+                    int cost = Integer.parseInt(costStr.replaceAll("[^0-9]", ""));
+
+                    // 닉네임으로 Member 찾기
+                    candidates.stream()
+                            .filter(m -> m.getNickname().equals(nickname))
+                            .findFirst()
+                            .ifPresent(m -> result.add(
+                                    CreateProjectResponse.PartnerResponse.of(m, cost)));
+                }
+            }
+
+            return result.isEmpty() ? fallbackRecommendPartners(candidates, avgCost) : result;
+        } catch (Exception e) {
+            log.warn("파트너 추천 JSON 파싱 실패, 기본 방식 사용: {}", e.getMessage());
+            return fallbackRecommendPartners(candidates, avgCost);
+        }
+    }
+
+    private String extractJsonValue(String json, String key) {
+        String pattern = "\"" + key + "\"\\s*:\\s*\"?([^,}\"]+)\"?";
+        java.util.regex.Pattern p = java.util.regex.Pattern.compile(pattern);
+        java.util.regex.Matcher m = p.matcher(json);
+        return m.find() ? m.group(1).trim() : null;
+    }
+
+    private List<CreateProjectResponse.PartnerResponse> fallbackRecommendPartners(
+            List<Member> candidates, int avgCost) {
+        // Gemini 실패 시 폴백: 경험 많은 순으로 추천
+        return candidates.stream()
+                .sorted((a, b) -> b.getProjectCountType().getCount()
+                        .compareTo(a.getProjectCountType().getCount()))
+                .limit(10)
+                .map(m -> {
+                    // 경험에 따른 가격 차등 (70% ~ 130%)
+                    int count = m.getProjectCountType().getCount();
+                    double multiplier = 0.7 + (count * 0.1);
+                    if (multiplier > 1.3) multiplier = 1.3;
+                    int cost = (int) (avgCost * multiplier);
+                    return CreateProjectResponse.PartnerResponse.of(m, cost);
+                })
+                .toList();
     }
 
     private static class RecruitmentInfo {
