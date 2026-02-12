@@ -35,6 +35,7 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           PAYMENT_CLIENT_KEY: ${{ secrets.PAYMENT_CLIENT_KEY }}
+          PAYMENT_SECRET_KEY: ${{ secrets.PAYMENT_SECRET_KEY }}
 
       # JAR 이름 고정
       - name: Prepare JAR
