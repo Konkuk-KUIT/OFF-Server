@@ -99,7 +99,7 @@ public class ChatService {
         SendMessageResponse response = SendMessageResponse.of(savedMessage, true);
         messagingTemplate.convertAndSend("/sub/chat/room/" + roomId, response);
 
-        messagingTemplate.convertAndSendToUser(opponent.getId().toString(), "/queue/unread-status",
+        messagingTemplate.convertAndSendToUser(opponent.getMember().getId().toString(), "/queue/unread-status",
                 Map.of("hasUnread", true));
 
         return response;

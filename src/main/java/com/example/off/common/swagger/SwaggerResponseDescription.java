@@ -143,13 +143,6 @@ public enum SwaggerResponseDescription {
             ALREADY_APPLIED
     ))),
 
-    ACCEPT_APPLICATION(new LinkedHashSet<>(Set.of(
-            PROJECT_NOT_FOUND,
-            APPLICATION_NOT_FOUND,
-            INVALID_APPLICATION_STATUS,
-            UNAUTHORIZED_ACCESS
-    ))),
-
     GET_PARTNER_PROFILE(new LinkedHashSet<>(Set.of(
             MEMBER_NOT_FOUND
     ))),

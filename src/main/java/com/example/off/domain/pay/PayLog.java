@@ -64,23 +64,12 @@ public class PayLog {
     @JoinColumn(name = "application_id", nullable = false)
     private PartnerApplication application;
 
-    private PayLog(Long amount, PayStatus status, Member member, ProjectMember projectMember) {
-        this.amount = amount;
-        this.status = status;
-        this.payer = member;
-        this.projectMember = projectMember;
-    }
-
     private PayLog(String orderId, Long amount, PayStatus status, Member payer, PartnerApplication application) {
         this.orderId = orderId;
         this.amount = amount;
         this.status = status;
         this.payer = payer;
         this.application = application;
-    }
-
-    public static PayLog of(Long amount, PayStatus status, Member member, ProjectMember projectMember){
-        return new PayLog(amount, status, member, projectMember);
     }
 
     public static PayLog ready(String orderId, Long amount, Member payer, PartnerApplication application) {

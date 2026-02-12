@@ -53,8 +53,8 @@ public class PayLogService {
 
         PartnerRecruit recruit = application.getPartnerRecruit();
 
-        // recruit.cost는 해당 프로젝트에서 직군별로 고정된 가격
-        long amount = (long) recruit.getCost();
+        // recruit.cost는 만원 단위이므로 실제 금액(원)으로 변환
+        long amount = (long) recruit.getCost() * 10000;
 
         String orderId = "order_" + UUID.randomUUID().toString().replace("-", "");
 
@@ -111,6 +111,12 @@ public class PayLogService {
 
         ProjectMember projectMember = ProjectMember.of(project, payee);
         projectMemberRepository.save(projectMember);
+
+        // 첫 파트너 매칭 완료 시 creator의 isWorking 상태 활성화
+        Member creator = project.getCreator();
+        if (!Boolean.TRUE.equals(creator.getIsWorking())) {
+            creator.startWorking();
+        }
 
         recruit.downNumberOfPerson();
         recruit.closeIfFull();

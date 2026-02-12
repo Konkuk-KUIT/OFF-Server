@@ -126,10 +126,8 @@ public class ProjectService {
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = LocalDate.parse(request.getEndDate(), END_DATE_FORMATTER);
 
-        // 3. 프로젝트 진행 상태 반영
-        creator.startWorking();
-
-        // 4. DB 저장 (totalEstimate는 estimateProject에서 이미 months를 포함한 값)
+        // 3. DB 저장 (totalEstimate는 estimateProject에서 이미 months를 포함한 값)
+        // isWorking 상태는 첫 파트너 매칭 완료 시점에 변경됨
         Project project = new Project(
                 request.getName(),
                 request.getDescription(),
@@ -141,11 +139,11 @@ public class ProjectService {
                 creator);
         projectRepository.save(project);
 
-        // 5. creator를 ProjectMember로 추가 (기획자도 프로젝트 멤버여야 태스크 생성 가능)
+        // 4. creator를 ProjectMember로 추가 (기획자도 프로젝트 멤버여야 태스크 생성 가능)
         ProjectMember creatorMember = ProjectMember.of(project, creator);
         projectMemberRepository.save(creatorMember);
 
-        // 6. 파트너 모집 공고 생성 및 선택한 파트너에게 제안
+        // 5. 파트너 모집 공고 생성 및 선택한 파트너에게 제안
         for (ConfirmProjectRequest.RecruitmentRequest r : request.getRecruitmentList()) {
             Role role = parseRole(r.getRoleId());
             PartnerRecruit recruit = partnerRecruitRepository.save(
@@ -177,7 +175,7 @@ public class ProjectService {
             }
         }
 
-        // 7. Gemini로 Task 자동 생성
+        // 6. Gemini로 Task 자동 생성
         generateAndSaveTasks(project, creatorMember, request.getDescription(), request.getRequirement());
 
         return ConfirmProjectResponse.of(project.getId());
