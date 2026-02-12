@@ -165,7 +165,7 @@ public class PartnerMatchingService {
 
         notificationService.sendNotification(
                 project.getCreator().getId(),
-                applicant.getNickname() + "님이 " + role.getValue() + " 역할로 지원했어요! (예상 비용: " + recruit.getCost() + "만원)",
+                applicant.getNickname() + "님이 " + role.getValue() + " 역할로 지원했어요! (예상 비용: " + String.format("%,d원", recruit.getCost()) + ")",
                 "/payments/prepare/" + application.getId(),
                 NotificationType.APPLICATION
         );

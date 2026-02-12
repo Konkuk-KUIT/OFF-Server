@@ -6,9 +6,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class AcceptInvitationResponse {
-    private Long projectMemberId;
+    private Long applicationId;
 
-    public static AcceptInvitationResponse of(Long projectMemberId) {
-        return new AcceptInvitationResponse(projectMemberId);
+    public static AcceptInvitationResponse of(Long applicationId) {
+        return new AcceptInvitationResponse(applicationId);
     }
 }
