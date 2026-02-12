@@ -36,6 +36,9 @@ public class PartnerRecruit {
     @Column(nullable = false)
     private Integer numberOfPerson;
 
+    @Column(nullable = false)
+    private Long cost;  // 원 단위
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -59,10 +62,24 @@ public class PartnerRecruit {
     @OneToMany(mappedBy = "partnerRecruit")
     private List<PartnerApplication> partnerApplications = new ArrayList<>();
 
-    public PartnerRecruit(Project project, Role role, Integer numberOfPerson, RecruitStatus recruitStatus) {
+    public PartnerRecruit(Project project, Role role, Integer numberOfPerson, RecruitStatus recruitStatus, Long cost) {
         this.project = project;
         this.role = role;
         this.numberOfPerson = numberOfPerson;
         this.recruitStatus = recruitStatus;
+        this.cost = cost;
+    }
+    public void downNumberOfPerson(){
+        this.numberOfPerson--;
+    }
+
+    public void closeIfFull() {
+        if (this.numberOfPerson <= 0) {
+            this.recruitStatus = RecruitStatus.CLOSED;
+        }
+    }
+
+    public void close() {
+        this.recruitStatus = RecruitStatus.CLOSED;
     }
 }

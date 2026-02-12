@@ -5,7 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
+
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -15,11 +15,8 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    //Todo: 추후 Value 주입
-    //secret key 주입
-//    @Value("${jwt.secret}")
-//    private String secret;
-    private String secret = "01234567890123456789012345678901";
+    @Value("${jwt.secret}")
+    private String secret;
 
 
     //expire 시간 설정

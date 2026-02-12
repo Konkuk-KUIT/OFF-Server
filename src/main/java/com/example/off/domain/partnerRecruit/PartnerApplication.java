@@ -4,10 +4,8 @@ import com.example.off.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CollectionId;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.annotation.CreatedBy;
 
 import java.time.LocalDateTime;
 
@@ -52,4 +50,23 @@ public class PartnerApplication {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "partner_recruit_id", nullable = false)
     private PartnerRecruit partnerRecruit;
+
+    private PartnerApplication(Member member, PartnerRecruit partnerRecruit, boolean isFromProject) {
+        this.member = member;
+        this.partnerRecruit = partnerRecruit;
+        this.isFromProject = isFromProject;
+        this.applicationStatus = ApplicationStatus.WAITING;
+    }
+
+    public static PartnerApplication of(Member member, PartnerRecruit partnerRecruit, boolean isFromProject) {
+        return new PartnerApplication(member, partnerRecruit, isFromProject);
+    }
+
+    public void accept() {
+        this.applicationStatus = ApplicationStatus.ACCEPT;
+    }
+
+    public void reject() {
+        this.applicationStatus = ApplicationStatus.REJECT;
+    }
 }

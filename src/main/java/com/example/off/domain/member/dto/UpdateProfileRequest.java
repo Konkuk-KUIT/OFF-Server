@@ -12,6 +12,8 @@ public record UpdateProfileRequest(
         @Size(max = NICKNAME_MAX_LENGTH)
         String nickname,
 
+        String profileImage,  // 프로필 이미지 URL
+
         ProjectCountType projectCount,
         List<PortfolioRequest> portfolioList,
 

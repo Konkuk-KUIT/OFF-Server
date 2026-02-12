@@ -49,10 +49,32 @@ public enum ResponseCode {
     PROJECT_NOT_FOUND(false, 404, "프로젝트를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     INVALID_PROJECT_TYPE(false, 400, "유효하지 않은 프로젝트 유형입니다.", HttpStatus.BAD_REQUEST),
     INVALID_ROLE(false, 400, "유효하지 않은 직무입니다.", HttpStatus.BAD_REQUEST),
+    RECRUIT_NOT_FOUND(false, 404, "파트너 모집 공고를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    APPLICATION_NOT_FOUND(false, 404, "파트너 요청을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
     // 토큰
     INVALID_TOKEN(false, 400, "유효하지 않은 토큰입니다.", HttpStatus.BAD_REQUEST),
-    TOKEN_NOT_FOUND(false, 404, "토큰을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+    TOKEN_NOT_FOUND(false, 404, "토큰을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
+    // 결제
+    PAYLOG_NOT_FOUND(false, 404, "결제 사항을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    INVALID_PAY_STATUS(false, 400, "결제 사항이 유효하지 않습니다", HttpStatus.BAD_REQUEST),
+    TOSS_CONFIRM_FAILED(false, 502, "결제 승인에 실패하였습니다.", HttpStatus.BAD_GATEWAY),
+
+    // 파트너 매칭
+    RECRUIT_CLOSED(false, 400, "모집이 마감된 공고입니다.", HttpStatus.BAD_REQUEST),
+    ALREADY_APPLIED(false, 409, "이미 지원한 공고입니다.", HttpStatus.CONFLICT),
+    INVALID_APPLICATION_STATUS(false, 400, "유효하지 않은 지원 상태입니다.", HttpStatus.BAD_REQUEST),
+    ALREADY_PROJECT_MEMBER(false, 409, "이미 프로젝트 멤버입니다.", HttpStatus.CONFLICT),
+    ROLE_MISMATCH(false, 400, "파트너의 역할과 모집 역할이 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
+
+    // 태스크
+    TASK_NOT_FOUND(false, 404, "태스크를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    TODO_NOT_FOUND(false, 404, "할일을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
+    // 권한
+    UNAUTHORIZED_ACCESS(false, 403, "접근 권한이 없습니다.", HttpStatus.FORBIDDEN),
+    PROJECT_ALREADY_COMPLETED(false, 400, "이미 완료된 프로젝트입니다.", HttpStatus.BAD_REQUEST);
 
     private boolean isSuccess;
     private int code;

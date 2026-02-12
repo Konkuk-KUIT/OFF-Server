@@ -62,7 +62,7 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ProjectCountType projectCountType;
+    private ProjectCountType projectCount;
 
     @Column(nullable = false)
     @ColumnDefault("false")
@@ -88,7 +88,7 @@ public class Member {
     @OneToMany(mappedBy = "member")
     private List<Notification> notifications = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member")
+    @OneToMany(mappedBy = "payer")
     private List<PayLog> payLogs = new ArrayList<>();
 
     @OneToMany(mappedBy = "member")
@@ -101,7 +101,7 @@ public class Member {
     private List<Project> projects = new ArrayList<>();
 
     private Member(
-            String name, String email, String password, String nickname, Role role, String selfIntroduction, LocalDate birth, ProjectCountType projectCountType, String profileImage
+            String name, String email, String password, String nickname, Role role, String selfIntroduction, LocalDate birth, ProjectCountType projectCount, String profileImage
     ) {
         this.name = name;
         this.email = email;
@@ -111,13 +111,13 @@ public class Member {
         this.selfIntroduction = selfIntroduction;
         this.birth = birth;
         this.isWorking = false;
-        this.projectCountType = projectCountType;
+        this.projectCount = projectCount;
         this.profileImage = profileImage;
     }
 
-    public static Member of(String name, String email, String password, String nickname, Role role, String selfIntroduction, LocalDate birth, ProjectCountType projectCountType, String profileImage) {
+    public static Member of(String name, String email, String password, String nickname, Role role, String selfIntroduction, LocalDate birth, ProjectCountType projectCount, String profileImage) {
         return new Member(
-                name, email, password, nickname, role, selfIntroduction, birth, projectCountType, profileImage
+                name, email, password, nickname, role, selfIntroduction, birth, projectCount, profileImage
         );
     }
 
@@ -129,8 +129,20 @@ public class Member {
     //Setter
     public void updateNickname(String nickname) { this.nickname = nickname; }
     public void updateProjectCount(ProjectCountType count){
-        this.projectCountType = count;
+        this.projectCount = count;
     }
     public void updateIntroduction(String selfIntroduction) { this.selfIntroduction = selfIntroduction; }
     public void startWorking() { this.isWorking = true; }
+    public void stopWorking() { this.isWorking = false; }
+
+    public void incrementProjectCount() {
+        this.projectCount = switch (this.projectCount) {
+            case ZERO -> ProjectCountType.ONCE;
+            case ONCE -> ProjectCountType.TWICE;
+            case TWICE -> ProjectCountType.THREE_TIMES;
+            case THREE_TIMES -> ProjectCountType.FOUR_TIMES;
+            case FOUR_TIMES -> ProjectCountType.PLUS_FIVE;
+            case PLUS_FIVE -> ProjectCountType.PLUS_FIVE; // 최대값 유지
+        };
+    }
 }

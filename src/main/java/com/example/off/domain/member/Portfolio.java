@@ -43,8 +43,8 @@ public class Portfolio {
     private Member member;
 
     private Portfolio(String description, String link) {
-        this.description = description;
-        this.link = link;
+        this.description = description == null ? "" : description;
+        this.link = link == null ? "" : link;
     }
 
     public static Portfolio of(String description, String link){

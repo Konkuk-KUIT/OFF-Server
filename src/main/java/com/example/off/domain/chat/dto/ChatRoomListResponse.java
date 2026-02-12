@@ -65,7 +65,9 @@ public class ChatRoomListResponse {
         public static ChatRoomResponse of(ChatRoom room, ChatRoomMember opponent, Project project,
                                           Message lastMessage, int unReadCount){
             return new ChatRoomResponse(room.getId(), room.getChatType(), OpponentResponse.from(opponent),
-                    ChatProjectInfo.from(project),LastMessageInfo.of(lastMessage), unReadCount);
+                    project == null ? null : ChatProjectInfo.from(project),
+                    lastMessage == null ? null : LastMessageInfo.of(lastMessage),
+                    unReadCount);
         }
     }
 

@@ -19,4 +19,5 @@ public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, 
             @Param("myId") Long myId
     );
 
+    boolean existsByChatRoom_IdAndMember_Id(Long chatRoomId, Long memberId);
 }

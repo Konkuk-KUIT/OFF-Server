@@ -39,4 +39,22 @@ public class ToDo {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "task_id", nullable = false)
     private Task task;
+
+    private ToDo(String content, Task task) {
+        this.content = content;
+        this.task = task;
+        this.isDone = false;
+    }
+
+    public static ToDo of(String content, Task task) {
+        return new ToDo(content, task);
+    }
+
+    public void toggleDone() {
+        this.isDone = !this.isDone;
+    }
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }
