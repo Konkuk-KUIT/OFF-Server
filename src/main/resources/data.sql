@@ -140,6 +140,12 @@ FROM member m, project p
 WHERE m.email = 'dev@example.com' AND p.name = '펫케어 플랫폼'
 AND NOT EXISTS (SELECT 1 FROM project_member pm WHERE pm.member_id = m.member_id AND pm.project_id = p.project_id);
 
+INSERT INTO project_member (role, member_id, project_id, created_at, updated_at)
+SELECT 'MAR', m.member_id, p.project_id, NOW(), NOW()
+FROM member m, project p
+WHERE m.email = 'mar@example.com' AND p.name = '펫케어 플랫폼'
+AND NOT EXISTS (SELECT 1 FROM project_member pm WHERE pm.member_id = m.member_id AND pm.project_id = p.project_id);
+
 -- 스터디 매칭 서비스: 이기획(creator)
 INSERT INTO project_member (role, member_id, project_id, created_at, updated_at)
 SELECT 'PM', m.member_id, p.project_id, NOW(), NOW()
@@ -388,7 +394,7 @@ AND NOT EXISTS (SELECT 1 FROM notification n WHERE n.notification_type = 'CHAT' 
 INSERT INTO pay_log (order_id, amount, status, payment_key, member_id, application_id, project_member_id, created_at, updated_at)
 SELECT
     'order_' || SUBSTR(MD5(RANDOM()::text), 1, 32),
-    2500000,
+    2000000,
     'PAID',
     'payment_key_' || SUBSTR(MD5(RANDOM()::text), 1, 20),
     m.member_id,
@@ -398,9 +404,9 @@ SELECT
     NOW() - INTERVAL '1 day'
 FROM member m, partner_application pa, project_member pm, member payee
 WHERE m.email = 'planner@example.com'
-  AND payee.email = 'dev@example.com'
+  AND payee.email = 'mar@example.com'
   AND pa.member_id = payee.member_id
   AND pm.member_id = payee.member_id
-  AND pm.role = 'DEV'
+  AND pm.role = 'MAR'
 AND NOT EXISTS (SELECT 1 FROM pay_log pl WHERE pl.member_id = m.member_id AND pl.status = 'PAID')
 LIMIT 1;
