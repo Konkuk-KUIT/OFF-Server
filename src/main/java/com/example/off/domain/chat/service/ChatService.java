@@ -59,6 +59,12 @@ public class ChatService {
 
     @Transactional
     public ChatMessageDetailResponse getChatMessages(Long memberId, Long roomId, Long cursor, int size) {
+        // 권한 검증: 사용자가 해당 채팅방의 멤버인지 확인
+        boolean isMember = chatRoomMemberRepository.existsByChatRoom_IdAndMember_Id(roomId, memberId);
+        if (!isMember) {
+            throw new OffException(ResponseCode.UNAUTHORIZED_ACCESS);
+        }
+
         messageRepository.markAsReadByRoomId(roomId, memberId);
 
         // 2. 다른 방에 안 읽은 게 더 있는지 확인 (레드닷 업데이트용)
@@ -89,6 +95,13 @@ public class ChatService {
     public SendMessageResponse sendMessage(Long memberId, Long roomId, String content) {
         ChatRoom room = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new OffException(ResponseCode.CHATROOM_NOT_FOUND));
+
+        // 권한 검증: 사용자가 해당 채팅방의 멤버인지 확인
+        boolean isMember = chatRoomMemberRepository.existsByChatRoom_IdAndMember_Id(roomId, memberId);
+        if (!isMember) {
+            throw new OffException(ResponseCode.UNAUTHORIZED_ACCESS);
+        }
+
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
         ChatRoomMember opponent = chatRoomMemberRepository.findOpponentByRoomIdAndMyId(room.getId(), memberId)
