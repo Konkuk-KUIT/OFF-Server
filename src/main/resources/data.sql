@@ -385,14 +385,14 @@ FROM member m WHERE m.email = 'dev@example.com'
 AND NOT EXISTS (SELECT 1 FROM notification n WHERE n.notification_type = 'CHAT' AND n.member_id = m.member_id);
 
 -- 10. PayLog (결제 완료 샘플)
-INSERT INTO pay_log (order_id, amount, status, payment_key, payer_id, application_id, project_member_id, created_at, updated_at)
+INSERT INTO pay_log (order_id, amount, status, payment_key, member_id, application_id, project_member_id, created_at, updated_at)
 SELECT
     'order_' || SUBSTR(MD5(RANDOM()::text), 1, 32),
     2500000,
     'PAID',
     'payment_key_' || SUBSTR(MD5(RANDOM()::text), 1, 20),
     m.member_id,
-    pa.partner_application_id,
+    pa.application_id,
     pm.project_member_id,
     NOW() - INTERVAL '1 day',
     NOW() - INTERVAL '1 day'
@@ -402,5 +402,5 @@ WHERE m.email = 'planner@example.com'
   AND pa.member_id = payee.member_id
   AND pm.member_id = payee.member_id
   AND pm.role = 'DEV'
-AND NOT EXISTS (SELECT 1 FROM pay_log pl WHERE pl.payer_id = m.member_id AND pl.status = 'PAID')
+AND NOT EXISTS (SELECT 1 FROM pay_log pl WHERE pl.member_id = m.member_id AND pl.status = 'PAID')
 LIMIT 1;
