@@ -21,4 +21,6 @@ public interface PartnerRecruitRepository extends JpaRepository<PartnerRecruit, 
     Optional<PartnerRecruit> findByProjectAndRole(Project project, Role role);
 
     List<PartnerRecruit> findAllByProject_Id(Long projectId);
+
+    List<PartnerRecruit> findAllByProjectAndRecruitStatus(Project project, com.example.off.domain.partnerRecruit.RecruitStatus recruitStatus);
 }

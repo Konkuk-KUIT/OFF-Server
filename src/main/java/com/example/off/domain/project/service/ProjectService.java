@@ -407,6 +407,38 @@ public class ProjectService {
         }
 
         project.complete();
+
+        // 1. projectCount 증가 - creator와 모든 projectMember
+        Member creator = project.getCreator();
+        creator.incrementProjectCount();
+
+        for (ProjectMember pm : project.getProjectMembers()) {
+            pm.getMember().incrementProjectCount();
+        }
+
+        // 2. isWorking 변경 - creator의 다른 진행 중인 프로젝트가 없으면 false
+        boolean hasOtherActiveProjects = projectRepository.existsByCreator_IdAndStatusAndIdNot(
+                memberId, ProjectStatus.IN_PROGRESS, projectId
+        );
+        if (!hasOtherActiveProjects) {
+            creator.stopWorking();
+        }
+
+        // 3. 완료 알림 전송 - 모든 프로젝트 멤버에게
+        for (ProjectMember pm : project.getProjectMembers()) {
+            notificationService.sendNotification(
+                    pm.getMember().getId(),
+                    project.getName() + " 프로젝트가 완료되었습니다!",
+                    "/projects/" + project.getId(),
+                    NotificationType.PROJECT_COMPLETE
+            );
+        }
+
+        // 4. PartnerRecruit 자동 닫기 - 진행 중인 모든 파트너 모집 종료
+        List<PartnerRecruit> openRecruits = partnerRecruitRepository.findAllByProjectAndRecruitStatus(
+                project, RecruitStatus.OPEN
+        );
+        openRecruits.forEach(PartnerRecruit::close);
     }
 
     private int calculateProjectProgress(Project project) {

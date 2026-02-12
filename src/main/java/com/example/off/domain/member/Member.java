@@ -133,4 +133,16 @@ public class Member {
     }
     public void updateIntroduction(String selfIntroduction) { this.selfIntroduction = selfIntroduction; }
     public void startWorking() { this.isWorking = true; }
+    public void stopWorking() { this.isWorking = false; }
+
+    public void incrementProjectCount() {
+        this.projectCount = switch (this.projectCount) {
+            case ZERO -> ProjectCountType.ONCE;
+            case ONCE -> ProjectCountType.TWICE;
+            case TWICE -> ProjectCountType.THREE_TIMES;
+            case THREE_TIMES -> ProjectCountType.FOUR_TIMES;
+            case FOUR_TIMES -> ProjectCountType.PLUS_FIVE;
+            case PLUS_FIVE -> ProjectCountType.PLUS_FIVE; // 최대값 유지
+        };
+    }
 }

@@ -78,4 +78,8 @@ public class PartnerRecruit {
             this.recruitStatus = RecruitStatus.CLOSED;
         }
     }
+
+    public void close() {
+        this.recruitStatus = RecruitStatus.CLOSED;
+    }
 }
