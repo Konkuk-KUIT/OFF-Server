@@ -43,7 +43,7 @@ public class ProfileResponse {
                 member.getIsWorking(),
                 projectName,
                 member.getRole(),
-                member.getProjectCountType(),
+                member.getProjectCount(),
                 portfolioResponses,
                 member.getSelfIntroduction()
         );

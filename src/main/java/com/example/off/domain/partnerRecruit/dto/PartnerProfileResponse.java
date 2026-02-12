@@ -19,7 +19,7 @@ public class PartnerProfileResponse {
     private Role role;
     private String selfIntroduction;
     private Boolean isWorking;
-    private ProjectCountType projectCountType;
+    private ProjectCountType projectCount;
     private List<PortfolioItem> portfolios;
 
     public static PartnerProfileResponse of(Member member) {
@@ -37,7 +37,7 @@ public class PartnerProfileResponse {
                 member.getRole(),
                 member.getSelfIntroduction(),
                 member.getIsWorking(),
-                member.getProjectCountType(),
+                member.getProjectCount(),
                 portfolios
         );
     }

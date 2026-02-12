@@ -83,12 +83,12 @@ public class ProjectService {
         double months = days / 30.0;
 
         for (RecruitmentInfo info : recruitments) {
-            info.cost = (int)(estimateCostPerRole(info.role, request.getDescription(), request.getRequirement()) * months);
+            info.cost = (long)(estimateCostPerRole(info.role, request.getDescription(), request.getRequirement()) * months);
         }
 
         // 3. Gemini로 파트너 추천 및 개별 가격 산정
         List<CreateProjectResponse.EstimateResponse> estimateList = new ArrayList<>();
-        int totalEstimate = 0;
+        long totalEstimate = 0;
 
         for (RecruitmentInfo info : recruitments) {
             List<CreateProjectResponse.PartnerResponse> recommendedPartners =
@@ -126,13 +126,13 @@ public class ProjectService {
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = LocalDate.parse(request.getEndDate(), END_DATE_FORMATTER);
 
-        // 3. DB 저장 (totalEstimate는 estimateProject에서 이미 months를 포함한 값)
+        // 3. DB 저장 (totalEstimate는 estimateProject에서 이미 months를 포함한 값, 원 단위)
         // isWorking 상태는 첫 파트너 매칭 완료 시점에 변경됨
         Project project = new Project(
                 request.getName(),
                 request.getDescription(),
                 request.getRequirement(),
-                (long) request.getTotalEstimate(),
+                request.getTotalEstimate(),  // 이미 Long 타입
                 startDate,
                 endDate,
                 projectType,
@@ -326,7 +326,7 @@ public class ProjectService {
                     .map(m -> new HomeResponse.PartnerRecommendation(
                             m.getId(), m.getNickname(), m.getProfileImage(),
                             m.getRole(), m.getSelfIntroduction(),
-                            m.getProjectCountType().getValue(),
+                            m.getProjectCount().getValue(),
                             m.getPortfolios().size()))
                     .toList();
         }
@@ -505,11 +505,11 @@ public class ProjectService {
         }
     }
 
-    private int estimateCostPerRole(Role role, String description, String requirement) {
+    private long estimateCostPerRole(Role role, String description, String requirement) {
         String prompt = """
                 당신은 IT 프로젝트 비용 산정 전문가입니다.
-                아래 프로젝트 정보를 바탕으로 '%s' 직무의 1인당 월 예상 비용(만원 단위)을 숫자만 답해주세요.
-                예시: 500
+                아래 프로젝트 정보를 바탕으로 '%s' 직무의 1인당 월 예상 비용(원 단위)을 숫자만 답해주세요.
+                예시: 5000000 (5백만원)
 
                 [서비스 설명]
                 %s
@@ -520,16 +520,16 @@ public class ProjectService {
 
         try {
             String result = geminiService.generateText(prompt);
-            return Integer.parseInt(result.replaceAll("[^0-9]", ""));
+            return Long.parseLong(result.replaceAll("[^0-9]", ""));
         } catch (Exception e) {
             log.error("Gemini 비용 산정 실패 ({}): {}", role.name(), e.getMessage(), e);
-            return 0;
+            return 0L;
         }
     }
 
     private List<CreateProjectResponse.PartnerResponse> recommendPartners(
             Role role, List<Member> candidates, String description,
-            String requirement, int avgCost, double months) {
+            String requirement, long avgCost, double months) {
 
         if (candidates.isEmpty()) {
             return List.of();
@@ -542,7 +542,7 @@ public class ProjectService {
             candidateInfo.append(String.format(
                     "%d. 닉네임: %s, 자기소개: %s, 프로젝트 경험: %d회\n",
                     i + 1, m.getNickname(), m.getSelfIntroduction(),
-                    m.getProjectCountType().getCount()
+                    m.getProjectCount().getCount()
             ));
         }
 
@@ -553,13 +553,13 @@ public class ProjectService {
                 [프로젝트 정보]
                 - 서비스 설명: %s
                 - 요구사항: %s
-                - 평균 예상 비용: %d만원 (프로젝트 전체 기간)
+                - 평균 예상 비용: %d원 (프로젝트 전체 기간)
 
                 [후보 파트너 목록]
                 %s
 
                 출력 형식 (JSON):
-                각 파트너별로 추천 여부와 적정 비용을 다음 형식으로 답해주세요.
+                각 파트너별로 추천 여부와 적정 비용(원 단위)을 다음 형식으로 답해주세요.
                 추천하고 싶은 파트너만 포함하되, 최소 3명, 최대 10명을 선택하세요.
                 비용은 경험과 프로젝트 적합도에 따라 평균 비용의 70%%~150%% 범위 내에서 산정하세요.
 
@@ -586,7 +586,7 @@ public class ProjectService {
     }
 
     private List<CreateProjectResponse.PartnerResponse> parsePartnerRecommendations(
-            String jsonResult, List<Member> candidates, int avgCost) {
+            String jsonResult, List<Member> candidates, long avgCost) {
         try {
             // JSON 파싱 (간단한 방식)
             List<CreateProjectResponse.PartnerResponse> result = new ArrayList<>();
@@ -609,7 +609,7 @@ public class ProjectService {
                 String costStr = extractJsonValue(item, "cost");
 
                 if (nickname != null && costStr != null) {
-                    int cost = Integer.parseInt(costStr.replaceAll("[^0-9]", ""));
+                    long cost = Long.parseLong(costStr.replaceAll("[^0-9]", ""));
 
                     // 닉네임으로 Member 찾기
                     candidates.stream()
@@ -635,18 +635,18 @@ public class ProjectService {
     }
 
     private List<CreateProjectResponse.PartnerResponse> fallbackRecommendPartners(
-            List<Member> candidates, int avgCost) {
+            List<Member> candidates, long avgCost) {
         // Gemini 실패 시 폴백: 경험 많은 순으로 추천
         return candidates.stream()
-                .sorted((a, b) -> b.getProjectCountType().getCount()
-                        .compareTo(a.getProjectCountType().getCount()))
+                .sorted((a, b) -> b.getProjectCount().getCount()
+                        .compareTo(a.getProjectCount().getCount()))
                 .limit(10)
                 .map(m -> {
                     // 경험에 따른 가격 차등 (70% ~ 130%)
-                    int count = m.getProjectCountType().getCount();
+                    int count = m.getProjectCount().getCount();
                     double multiplier = 0.7 + (count * 0.1);
                     if (multiplier > 1.3) multiplier = 1.3;
-                    int cost = (int) (avgCost * multiplier);
+                    long cost = (long) (avgCost * multiplier);
                     return CreateProjectResponse.PartnerResponse.of(m, cost);
                 })
                 .toList();
@@ -656,7 +656,7 @@ public class ProjectService {
         final Role role;
         final int count;
         final List<Member> candidates;
-        int cost;
+        long cost;  // 원 단위
 
         RecruitmentInfo(Role role, int count, List<Member> candidates) {
             this.role = role;

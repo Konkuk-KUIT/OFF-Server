@@ -37,7 +37,7 @@ public class PartnerRecruit {
     private Integer numberOfPerson;
 
     @Column(nullable = false)
-    private Integer cost;
+    private Long cost;  // 원 단위
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -62,7 +62,7 @@ public class PartnerRecruit {
     @OneToMany(mappedBy = "partnerRecruit")
     private List<PartnerApplication> partnerApplications = new ArrayList<>();
 
-    public PartnerRecruit(Project project, Role role, Integer numberOfPerson, RecruitStatus recruitStatus, int cost) {
+    public PartnerRecruit(Project project, Role role, Integer numberOfPerson, RecruitStatus recruitStatus, Long cost) {
         this.project = project;
         this.role = role;
         this.numberOfPerson = numberOfPerson;

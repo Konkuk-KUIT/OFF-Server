@@ -13,18 +13,18 @@ public class CreateProjectResponse {
     private List<String> recruitmentRoles;
     private String endDate;
     private String serviceSummary;
-    private Integer totalEstimate;
+    private Long totalEstimate;  // 원 단위
     private List<EstimateResponse> estimateList;
 
     @Getter
     @AllArgsConstructor
     public static class EstimateResponse {
         private String role;
-        private Integer cost;
+        private Long cost;  // 원 단위
         private Integer count;
         private List<PartnerResponse> candidatePartners;
 
-        public static EstimateResponse of(String role, Integer cost, Integer count, List<PartnerResponse> partners) {
+        public static EstimateResponse of(String role, Long cost, Integer count, List<PartnerResponse> partners) {
             return new EstimateResponse(role, cost, count, partners);
         }
     }
@@ -36,14 +36,14 @@ public class CreateProjectResponse {
         private String nickname;
         private String introduction;
         private Integer projectCount;
-        private Integer suggestedCost;  // AI가 추천한 적정 가격
+        private Long suggestedCost;  // AI가 추천한 적정 가격 (원 단위)
 
-        public static PartnerResponse of(Member member, Integer suggestedCost) {
+        public static PartnerResponse of(Member member, Long suggestedCost) {
             return new PartnerResponse(
                     member.getId(),
                     member.getNickname(),
                     member.getSelfIntroduction(),
-                    member.getProjectCountType().getCount(),
+                    member.getProjectCount().getCount(),
                     suggestedCost
             );
         }

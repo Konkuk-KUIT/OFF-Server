@@ -14,7 +14,7 @@ public class ConfirmProjectRequest {
     private String requirement;
     private String serviceSummary;
     private String endDate;
-    private Integer totalEstimate;
+    private Long totalEstimate;  // 원 단위
     private List<RecruitmentRequest> recruitmentList;
 
     @Getter
@@ -22,7 +22,7 @@ public class ConfirmProjectRequest {
     public static class RecruitmentRequest {
         private String roleId;
         private Integer count;
-        private Integer cost;
+        private Long cost;  // 원 단위
         private List<Long> selectedPartnerIds;  // 선택한 파트너 ID 목록 (선택 사항)
     }
 }

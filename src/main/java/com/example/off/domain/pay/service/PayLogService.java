@@ -53,8 +53,8 @@ public class PayLogService {
 
         PartnerRecruit recruit = application.getPartnerRecruit();
 
-        // recruit.cost는 만원 단위이므로 실제 금액(원)으로 변환
-        long amount = (long) recruit.getCost() * 10000;
+        // recruit.cost는 이미 원 단위
+        long amount = recruit.getCost();
 
         String orderId = "order_" + UUID.randomUUID().toString().replace("-", "");
 
