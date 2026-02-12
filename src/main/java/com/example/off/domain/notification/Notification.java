@@ -52,11 +52,15 @@ public class Notification {
         this.isRead = true;
     }
 
-    public Notification(String content, String url, Boolean isRead, NotificationType notificationType, Member member) {
+    private Notification(String content, String url, Boolean isRead, NotificationType notificationType, Member member) {
         this.content = content;
         this.url = url;
         this.isRead = isRead;
         this.notificationType = notificationType;
         this.member = member;
+    }
+
+    public static Notification of(String content, String url, NotificationType notificationType, Member member) {
+        return new Notification(content, url, false, notificationType, member);
     }
 }
