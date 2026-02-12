@@ -28,6 +28,13 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew clean build
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          DB_ENDPOINT: ${{ secrets.DB_ENDPOINT }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PAYMENT_CLIENT_KEY: ${{ secrets.PAYMENT_CLIENT_KEY }}
 
       # JAR 이름 고정
       - name: Prepare JAR
