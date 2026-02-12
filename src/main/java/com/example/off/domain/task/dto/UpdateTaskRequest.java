@@ -21,5 +21,14 @@ public class UpdateTaskRequest {
     @NotNull
     private Long projectMemberId;
 
-    private List<String> toDoList;  // 세부태스크 목록 (null이면 수정 안 함)
+    private List<ToDoItem> toDoList;  // 세부태스크 목록 (null이면 수정 안 함)
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ToDoItem {
+        private Long id;  // null이면 신규 생성, 있으면 기존 업데이트
+        @NotBlank
+        private String content;
+    }
 }

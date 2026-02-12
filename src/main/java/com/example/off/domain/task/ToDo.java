@@ -53,4 +53,8 @@ public class ToDo {
     public void toggleDone() {
         this.isDone = !this.isDone;
     }
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }

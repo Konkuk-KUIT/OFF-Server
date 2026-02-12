@@ -33,6 +33,11 @@ public class TaskService {
         ProjectMember assignee = projectMemberRepository.findById(request.getProjectMemberId())
                 .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
 
+        // 담당자가 해당 프로젝트에 속하는지 검증
+        if (!assignee.getProject().getId().equals(projectId)) {
+            throw new OffException(ResponseCode.UNAUTHORIZED_ACCESS);
+        }
+
         Task task = Task.of(request.getName(), request.getDescription(), project, assignee);
         taskRepository.save(task);
 
@@ -57,19 +62,43 @@ public class TaskService {
         ProjectMember assignee = projectMemberRepository.findById(request.getProjectMemberId())
                 .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
 
+        // 담당자가 해당 프로젝트에 속하는지 검증
+        if (!assignee.getProject().getId().equals(task.getProject().getId())) {
+            throw new OffException(ResponseCode.UNAUTHORIZED_ACCESS);
+        }
+
         task.update(request.getName(), request.getDescription(), assignee);
 
         // ToDo 리스트 업데이트 (제공된 경우)
         if (request.getToDoList() != null) {
-            // 기존 ToDo 전부 삭제
-            toDoRepository.deleteAll(task.getToDoList());
-            task.getToDoList().clear();
+            // 요청에 포함된 기존 ToDo ID 수집
+            java.util.Set<Long> requestedIds = request.getToDoList().stream()
+                    .map(UpdateTaskRequest.ToDoItem::getId)
+                    .filter(java.util.Objects::nonNull)
+                    .collect(java.util.stream.Collectors.toSet());
 
-            // 새 ToDo 생성
-            for (String content : request.getToDoList()) {
-                ToDo toDo = ToDo.of(content, task);
-                toDoRepository.save(toDo);
-                task.getToDoList().add(toDo);
+            // 요청에 없는 기존 ToDo 삭제
+            java.util.List<ToDo> toDelete = task.getToDoList().stream()
+                    .filter(todo -> !requestedIds.contains(todo.getId()))
+                    .toList();
+            toDoRepository.deleteAll(toDelete);
+            task.getToDoList().removeAll(toDelete);
+
+            // 업데이트 또는 신규 생성
+            for (UpdateTaskRequest.ToDoItem item : request.getToDoList()) {
+                if (item.getId() != null) {
+                    // 기존 ToDo 업데이트
+                    ToDo existingToDo = task.getToDoList().stream()
+                            .filter(todo -> todo.getId().equals(item.getId()))
+                            .findFirst()
+                            .orElseThrow(() -> new OffException(ResponseCode.TODO_NOT_FOUND));
+                    existingToDo.updateContent(item.getContent());
+                } else {
+                    // 신규 ToDo 생성
+                    ToDo newToDo = ToDo.of(item.getContent(), task);
+                    toDoRepository.save(newToDo);
+                    task.getToDoList().add(newToDo);
+                }
             }
         }
 
@@ -87,9 +116,11 @@ public class TaskService {
     }
 
     @Transactional
-    public ToggleToDoResponse toggleToDo(Long taskId, Long toDoId) {
+    public ToggleToDoResponse toggleToDo(Long memberId, Long taskId, Long toDoId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new OffException(ResponseCode.TASK_NOT_FOUND));
+
+        validateProjectAccess(memberId, task.getProject());
 
         ToDo toDo = toDoRepository.findById(toDoId)
                 .orElseThrow(() -> new OffException(ResponseCode.TODO_NOT_FOUND));

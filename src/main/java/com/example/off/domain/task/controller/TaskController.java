@@ -64,7 +64,8 @@ public class TaskController {
             @PathVariable Long miniTaskId,
             HttpServletRequest httpServletRequest
     ) {
-        return BaseResponse.ok(taskService.toggleToDo(taskId, miniTaskId));
+        Long memberId = getMemberId(httpServletRequest);
+        return BaseResponse.ok(taskService.toggleToDo(memberId, taskId, miniTaskId));
     }
 
     private Long getMemberId(HttpServletRequest req) {
