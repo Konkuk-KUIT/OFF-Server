@@ -31,7 +31,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             "WHERE m.chatRoom.id = :roomId " +
             "AND m.isRead = false " +
             "AND m.member.id != :memberId")
-    int countUnreadMessages(Long id, Long memberId);
+    int countUnreadMessages(@Param("roomId") Long roomId, @Param("memberId") Long memberId);
 
     @Query("SELECT m FROM Message m " +
             "JOIN FETCH m.member " +

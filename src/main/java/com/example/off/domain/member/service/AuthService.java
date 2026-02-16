@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-    public final MemberRepository memberRepository;
+    private final MemberRepository memberRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
 
@@ -27,8 +27,19 @@ public class AuthService {
             throw new OffException(ResponseCode.DUPLICATE_EMAIL);
         }
 
+        //닉네임 중복 검증
+        if(memberRepository.existsByNickname(signupRequest.getNickname())) {
+            throw new OffException(ResponseCode.DUPLICATE_NICKNAME);
+        }
+
         //pw 암호화
         String encodedPassword = passwordEncoder.encode(signupRequest.getPassword());
+
+        //null 필드 기본값 처리
+        String selfIntroduction = signupRequest.getSelfIntroduction() != null
+                ? signupRequest.getSelfIntroduction() : "";
+        String profileImage = signupRequest.getProfileImage() != null
+                ? signupRequest.getProfileImage() : "";
 
         //회원 생성
         Member member = Member.of(
@@ -37,10 +48,10 @@ public class AuthService {
                 encodedPassword,
                 signupRequest.getNickname(),
                 signupRequest.getRole(),
-                signupRequest.getSelfIntroduction(),
+                selfIntroduction,
                 signupRequest.getBirth(),
                 signupRequest.getProjectCount(),
-                signupRequest.getProfileImage()
+                profileImage
         );
 
         //포트폴리오 생성 및 연관 관계 설정

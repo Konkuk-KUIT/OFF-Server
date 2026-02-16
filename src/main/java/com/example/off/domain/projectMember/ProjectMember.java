@@ -61,4 +61,14 @@ public class ProjectMember {
 
     @OneToMany(mappedBy = "projectMember")
     private List<PayLog> payLogs = new ArrayList<>();
+
+    private ProjectMember(Member member, Project project) {
+        this.member = member;
+        this.project = project;
+        this.role = member.getRole();
+    }
+
+    public static ProjectMember of(Project project, Member member) {
+       return new ProjectMember(member, project);
+    }
 }

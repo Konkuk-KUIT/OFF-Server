@@ -1,7 +1,9 @@
 package com.example.off.domain.notification.controller;
 
 import com.example.off.common.annotation.CustomExceptionDescription;
+import com.example.off.common.exception.OffException;
 import com.example.off.common.response.BaseResponse;
+import com.example.off.common.response.ResponseCode;
 import com.example.off.common.swagger.SwaggerResponseDescription;
 import com.example.off.domain.notification.dto.NotificationListResponse;
 import com.example.off.domain.notification.dto.NotificationReadResponse;
@@ -9,6 +11,7 @@ import com.example.off.domain.notification.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,12 +27,13 @@ public class NotificationController {
     @GetMapping
     @CustomExceptionDescription(SwaggerResponseDescription.GET_NOTIFICATIONS)
     public BaseResponse<NotificationListResponse> getNotifications(
-            @RequestParam(name = "memberId", defaultValue = "1") Long memberId,
+            HttpServletRequest httpServletRequest,
             @Parameter(description = "마지막으로 조회된 알림 ID (첫 페이지 조회 시 null)")
             @RequestParam(required = false) Long cursor,
             @Parameter(description = "한 번에 조회할 알림 개수 (기본값 10)")
             @RequestParam(defaultValue = "10") int size
     ) {
+        Long memberId = getMemberId(httpServletRequest);
         NotificationListResponse data = notificationService.getNotifications(memberId, cursor, size);
         return BaseResponse.ok(data);
     }
@@ -38,10 +42,17 @@ public class NotificationController {
     @PatchMapping("/{notificationId}/read")
     @CustomExceptionDescription(SwaggerResponseDescription.READ_NOTIFICATIONS)
     public BaseResponse<NotificationReadResponse> readNotification(
-            @RequestParam(name = "memberId", defaultValue = "1") Long memberId,
+            HttpServletRequest httpServletRequest,
             @PathVariable Long notificationId
     ) {
+        Long memberId = getMemberId(httpServletRequest);
         NotificationReadResponse data = notificationService.readUrlNotification(memberId, notificationId);
         return BaseResponse.ok(data);
+    }
+
+    private Long getMemberId(HttpServletRequest req) {
+        Object attr = req.getAttribute("memberId");
+        if (attr instanceof Long id) return id;
+        throw new OffException(ResponseCode.INVALID_TOKEN);
     }
 }

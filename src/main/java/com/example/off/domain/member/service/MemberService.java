@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,13 +26,12 @@ import static com.example.off.domain.member.Member.SELF_INTRO_MAX_LENGTH;
 public class MemberService {
     private final MemberRepository memberRepository;
     private final ProjectMemberRepository projectMemberRepository;
-    LocalDateTime now = LocalDateTime.now();
 
     @Transactional(readOnly = true)
     public ProfileResponse getMyProfile(Long memberId){
         Member member = findMember(memberId); //회원 찾기
         //현재 시점을 기준으로 진행중인 project 찾기
-//        boolean isWorking = projectMemberRepository.existsWorkingProject(memberId, now);
+        LocalDate now = LocalDate.now();
         Optional<ProjectMember> workingProjectList = projectMemberRepository.findWorkingProject(memberId, now);
         if (workingProjectList.isEmpty()) //진행 중인 프로젝트 없음.
             return ProfileResponse.of(member, null);
@@ -62,8 +61,13 @@ public class MemberService {
         //nickname 수정
         //빈 문자열 금지, 중복 허용하지 않음
         if (nickname!=null && !nickname.isBlank()){
-            validateNickname(nickname);
+            validateNickname(nickname, member);
             member.updateNickname(nickname);
+        }
+
+        //프로필 이미지 수정
+        if (updateReq.profileImage()!=null){
+            member.setProfileImage(updateReq.profileImage());
         }
 
         //프로젝트 경험 횟수 수정
@@ -87,7 +91,7 @@ public class MemberService {
                         pr.description(),
                         pr.link()
                 );
-                member.getPortfolios().add(portfolio);
+                member.addPortfolio(portfolio);
             }
         }
 
@@ -106,9 +110,12 @@ public class MemberService {
                 .orElseThrow(()->new OffException(ResponseCode.MEMBER_NOT_FOUND));
     }
 
-    private void validateNickname(String nickname) {
-        if (memberRepository.existsByNickname(nickname))
-            throw new OffException(ResponseCode.DUPLICATE_NICKNAME);
+    private void validateNickname(String nickname, Member currentMember) {
+        // 본인의 현재 닉네임과 같으면 중복 검사 통과
+        if (!nickname.equals(currentMember.getNickname())) {
+            if (memberRepository.existsByNickname(nickname))
+                throw new OffException(ResponseCode.DUPLICATE_NICKNAME);
+        }
 
         if (nickname.length() > NICKNAME_MAX_LENGTH)
             throw new OffException(ResponseCode.INVALID_INPUT_VALUE);

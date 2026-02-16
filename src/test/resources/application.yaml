@@ -6,7 +6,7 @@ spring:
     password:
   sql:
     init:
-      mode: always
+      mode: never  # 테스트 환경에서는 data.sql 실행 안 함 (PostgreSQL 문법 호환 이슈)
 
   jpa:
     defer-datasource-initialization: true
@@ -24,3 +24,9 @@ gemini:
 jwt:
   secret: this-is-test-secret-key-must-be-long-enough-for-security-policy
   expire-ms: 3600000
+
+payment:
+  client:
+    key: test_ck_dummy
+  secret:
+    key: test_sk_dummy

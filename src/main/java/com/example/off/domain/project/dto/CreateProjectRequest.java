@@ -10,7 +10,7 @@ import java.util.List;
 public class CreateProjectRequest {
     private String name;
     private String description;
-    private Long projectTypeId;
+    private Long projectTypeId = 1L;  // 앱개발로 고정 (1L = APP)
     private String requirement;
     private List<RecruitmentRequest> recruitmentList;
 

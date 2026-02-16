@@ -49,6 +49,23 @@ public class Task {
     @JoinColumn(name = "project_member_id", nullable = false)
     private ProjectMember projectMember;
 
-    @OneToMany(mappedBy = "task")
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ToDo> toDoList = new ArrayList<>();
+
+    private Task(String name, String description, Project project, ProjectMember projectMember) {
+        this.name = name;
+        this.description = description;
+        this.project = project;
+        this.projectMember = projectMember;
+    }
+
+    public static Task of(String name, String description, Project project, ProjectMember projectMember) {
+        return new Task(name, description, project, projectMember);
+    }
+
+    public void update(String name, String description, ProjectMember projectMember) {
+        this.name = name;
+        this.description = description;
+        this.projectMember = projectMember;
+    }
 }

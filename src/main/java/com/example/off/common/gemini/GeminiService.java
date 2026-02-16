@@ -43,4 +43,13 @@ public class GeminiService {
             throw new OffException(ResponseCode.GEMINI_API_ERROR);
         }
     }
+
+    public String generateTextSafe(String prompt, String defaultValue) {
+        try {
+            return generateText(prompt);
+        } catch (Exception e) {
+            log.warn("Gemini API 호출 실패, 기본값 반환: {}", e.getMessage());
+            return defaultValue;
+        }
+    }
 }

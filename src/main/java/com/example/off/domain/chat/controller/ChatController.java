@@ -1,7 +1,9 @@
 package com.example.off.domain.chat.controller;
 
 import com.example.off.common.annotation.CustomExceptionDescription;
+import com.example.off.common.exception.OffException;
 import com.example.off.common.response.BaseResponse;
+import com.example.off.common.response.ResponseCode;
 import com.example.off.common.swagger.SwaggerResponseDescription;
 import com.example.off.domain.chat.ChatType;
 import com.example.off.domain.chat.dto.*;
@@ -9,6 +11,7 @@ import com.example.off.domain.chat.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,10 +26,11 @@ public class ChatController {
     @GetMapping("/rooms")
     @CustomExceptionDescription(SwaggerResponseDescription.GET_CHAT_ROOMS)
     public BaseResponse<ChatRoomListResponse> getChatRoomList(
-            @Parameter(hidden = true) @RequestParam(defaultValue = "1") Long memberId,
+            HttpServletRequest httpServletRequest,
             @Parameter(description = "채팅방 타입 (개인/팀 등)")
             @RequestParam ChatType type
     ) {
+        Long memberId = getMemberId(httpServletRequest);
         ChatRoomListResponse data = chatService.getChatRoomList(memberId, type);
         return BaseResponse.ok(data);
     }
@@ -38,8 +42,9 @@ public class ChatController {
             @PathVariable Long roomId,
             @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "20") int size,
-            @Parameter(hidden = true) @RequestParam(defaultValue = "1") Long memberId // 임시 인증 ID
+            HttpServletRequest httpServletRequest
     ) {
+        Long memberId = getMemberId(httpServletRequest);
         ChatMessageDetailResponse data = chatService.getChatMessages(memberId, roomId, cursor, size);
         return BaseResponse.ok(data);
     }
@@ -48,10 +53,10 @@ public class ChatController {
     @PostMapping("/rooms/messages")
     @CustomExceptionDescription(SwaggerResponseDescription.SEND_MESSAGES)
     public BaseResponse<SendMessageResponse> sendMessage(
-            @Parameter(hidden = true) @RequestParam(defaultValue = "1") Long memberId,
+            HttpServletRequest httpServletRequest,
             @RequestBody SendMessageRequest request
     ) {
-        // ChatService에서 DB 저장 + STOMP 배달 + 레드닷 전송을 한꺼번에 처리합니다
+        Long memberId = getMemberId(httpServletRequest);
         SendMessageResponse data = chatService.sendMessage(memberId, request.roomId(), request.content());
         return BaseResponse.ok(data);
     }
@@ -60,10 +65,17 @@ public class ChatController {
     @PostMapping("/rooms/first")
     @CustomExceptionDescription(SwaggerResponseDescription.CREATE_ROOM_AND_SEND_MESSAGES)
     public BaseResponse<ChatInitialSendResponse> startChat(
-            @Parameter(hidden = true) @RequestParam(defaultValue = "1") Long memberId,
+            HttpServletRequest httpServletRequest,
             @RequestBody ChatInitialSendRequest request
     ) {
+        Long memberId = getMemberId(httpServletRequest);
         ChatInitialSendResponse data = chatService.createRoomAndSendMessage(memberId, request);
         return BaseResponse.ok(data);
+    }
+
+    private Long getMemberId(HttpServletRequest req) {
+        Object attr = req.getAttribute("memberId");
+        if (attr instanceof Long id) return id;
+        throw new OffException(ResponseCode.INVALID_TOKEN);
     }
 }

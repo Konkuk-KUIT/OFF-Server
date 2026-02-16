@@ -32,12 +32,19 @@ public class NotificationService {
                 PageRequest.of(0, size + 1));
         boolean hasNext = notifications.size() > size;
 
-        List<Notification> autoReadList = notifications.stream().limit(size)
-                .filter(n -> n.getUrl() == null && !n.getIsRead()).peek(Notification::read).toList();
+        // size만큼만 가져오기
+        List<Notification> limitedNotifications = notifications.stream().limit(size).toList();
+
+        // URL이 없고 읽지 않은 알림 자동 읽음 처리
+        List<Notification> autoReadList = limitedNotifications.stream()
+                .filter(n -> n.getUrl() == null && !n.getIsRead())
+                .toList();
+        autoReadList.forEach(Notification::read);
         long autoReadCount = autoReadList.size();
+
         int finalUnreadCount = Math.max(0, totalUnread - (int)autoReadCount);
 
-        List<NotificationResponse> notificationResponses = notifications.stream().limit(size)
+        List<NotificationResponse> notificationResponses = limitedNotifications.stream()
                 .map(NotificationResponse::from).toList();
 
         return NotificationListResponse.of(finalUnreadCount, notificationResponses, hasNext);
@@ -67,7 +74,7 @@ public class NotificationService {
                 .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
 
         // 2. 알림 DB 저장
-        Notification notification = new Notification(content, url, false, type, receiver);
+        Notification notification = Notification.of(content, url, type, receiver);
         notificationRepository.save(notification);
 
         // 3. 실시간 알림 전송 (STOMP)

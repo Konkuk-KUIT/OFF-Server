@@ -21,23 +21,16 @@ public class JwtAuthenticationFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
 
-        System.out.println("JWT FILTER: "+request.getRequestURI());
-
         String header = request.getHeader("Authorization");
 
         if (header == null || !header.startsWith("Bearer ")) {
-//            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            chain.doFilter(request, response);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"success\":false,\"code\":401,\"message\":\"토큰이 필요합니다.\"}");
             return;
         }
 
-        //Todo: JwtService 와 중복 기능 제거 필요 (attribute 파싱)
-        /*
-         * memberId 및 Role을 token 으로부터
-         * 파싱해옴
-         * */
         try {
-
             String token = header.substring(7);
             Claims claims = jwtTokenProvider.parseToken(token);
 
