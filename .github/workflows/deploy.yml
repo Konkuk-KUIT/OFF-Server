@@ -97,6 +97,24 @@ jobs:
               rm -rf app.jar
             fi
 
+      # 환경 변수를 .env 파일로 생성
+      - name: Create .env file on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cat > /home/ubuntu/app/.env << 'EOF'
+            DB_ENDPOINT=${{ secrets.DB_ENDPOINT }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            PAYMENT_CLIENT_KEY=${{ secrets.PAYMENT_CLIENT_KEY }}
+            PAYMENT_SECRET_KEY=${{ secrets.PAYMENT_SECRET_KEY }}
+            EOF
+
       # systemd로 앱 재시작
       - name: Restart app via systemd
         uses: appleboy/ssh-action@v1.0.3
