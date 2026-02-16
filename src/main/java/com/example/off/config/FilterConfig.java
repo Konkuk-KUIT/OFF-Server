@@ -26,6 +26,8 @@ public class FilterConfig {
                 "/members/*", "/members/*/*", "/members/*/*/*",
                 "/projects/*", "/projects/*/*", "/projects/*/*/*", "/projects/*/*/*/*",
                 "/tasks/*", "/tasks/*/*", "/tasks/*/*/*",
+                "/chat/*", "/chat/*/*",
+                "/notifications", "/notifications/*",
                 "/home",
                 "/partners/*",
                 "/invitations/*", "/invitations/*/*"
