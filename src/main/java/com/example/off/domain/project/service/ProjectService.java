@@ -70,30 +70,29 @@ public class ProjectService {
             recruitments.add(new RecruitmentInfo(role, r.getCount(), candidates));
         }
 
-        // 2. 외부 API 호출 (LLM)
-        String serviceSummary = generateServiceSummary(request.getDescription(), request.getRequirement());
-
+        // 2. 한 번의 Gemini API 호출로 모든 정보 생성
         LocalDate startDate = LocalDate.now();
-        LocalDate endDate = estimateEndDate(startDate, request.getDescription(), request.getRequirement());
+        ProjectEstimateResult estimateResult = generateProjectEstimateAll(
+                request.getDescription(),
+                request.getRequirement(),
+                startDate,
+                recruitments);
 
-        // 전체 일 수
-        long days = ChronoUnit.DAYS.between(startDate, endDate);
-
-        // 30일 = 1개월
+        // 3. 응답 구성
+        long days = ChronoUnit.DAYS.between(startDate, estimateResult.endDate);
         double months = days / 30.0;
 
-        for (RecruitmentInfo info : recruitments) {
-            info.cost = (long)(estimateCostPerRole(info.role, request.getDescription(), request.getRequirement()) * months);
-        }
-
-        // 3. Gemini로 파트너 추천 및 개별 가격 산정
         List<CreateProjectResponse.EstimateResponse> estimateList = new ArrayList<>();
         long totalEstimate = 0;
 
         for (RecruitmentInfo info : recruitments) {
+            // Gemini 결과에서 비용 가져오기 (없으면 기본값 0)
+            long monthlyCost = estimateResult.roleCosts.getOrDefault(info.role, 0L);
+            info.cost = (long)(monthlyCost * months);
+
+            // 파트너 추천 목록 가져오기
             List<CreateProjectResponse.PartnerResponse> recommendedPartners =
-                    recommendPartners(info.role, info.candidates, request.getDescription(),
-                                    request.getRequirement(), info.cost, months);
+                    estimateResult.partnerRecommendations.getOrDefault(info.role, List.of());
 
             estimateList.add(CreateProjectResponse.EstimateResponse.of(
                     info.role.name(), info.cost, info.count, recommendedPartners));
@@ -101,7 +100,6 @@ public class ProjectService {
             totalEstimate += info.cost * info.count;
         }
 
-        // 4. 응답 구성 (DB 저장 없음 — 미리보기용)
         List<String> recruitmentRoles = recruitments.stream()
                 .map(r -> r.role.name())
                 .toList();
@@ -109,8 +107,8 @@ public class ProjectService {
         return new CreateProjectResponse(
                 projectType.getDisplayName(),
                 recruitmentRoles,
-                endDate.format(END_DATE_FORMATTER),
-                serviceSummary,
+                estimateResult.endDate.format(END_DATE_FORMATTER),
+                estimateResult.serviceSummary,
                 totalEstimate,
                 estimateList);
     }
@@ -477,6 +475,181 @@ public class ProjectService {
         };
     }
 
+    private ProjectEstimateResult generateProjectEstimateAll(
+            String description, String requirement, LocalDate startDate, List<RecruitmentInfo> recruitments) {
+
+        // 후보 파트너 정보 포맷팅
+        StringBuilder candidateInfo = new StringBuilder();
+        for (RecruitmentInfo info : recruitments) {
+            candidateInfo.append(String.format("\n[%s 후보 파트너 목록]\n", info.role.getValue()));
+            for (int i = 0; i < Math.min(info.candidates.size(), 10); i++) {
+                Member m = info.candidates.get(i);
+                candidateInfo.append(String.format(
+                        "%d. 닉네임: %s, 자기소개: %s, 프로젝트 경험: %d회\n",
+                        i + 1, m.getNickname(), m.getSelfIntroduction(),
+                        m.getProjectCount().getCount()
+                ));
+            }
+        }
+
+        String roles = recruitments.stream()
+                .map(r -> r.role.getValue())
+                .collect(Collectors.joining(", "));
+
+        String prompt = """
+                당신은 IT 프로젝트 전문가입니다.
+                아래 프로젝트 정보를 분석하여 **한 번에** 모든 견적 정보를 JSON 형식으로 제공해주세요.
+
+                [프로젝트 정보]
+                - 시작일: %s
+                - 서비스 설명: %s
+                - 요구사항: %s
+                - 필요 역할: %s
+
+                %s
+
+                다음 형식의 JSON으로 응답해주세요:
+                {
+                  "serviceSummary": "서비스 상세 정의 및 단계별 실행 계획 (마크다운 형식, 500자 이내)",
+                  "estimatedDays": 90,
+                  "roleCosts": {
+                    "기획자": 3000000,
+                    "개발자": 5000000,
+                    "디자이너": 4000000,
+                    "마케터": 3500000
+                  },
+                  "partnerRecommendations": {
+                    "개발자": [
+                      {"nickname": "박개발", "cost": 6000000},
+                      {"nickname": "최개발", "cost": 5500000}
+                    ],
+                    "디자이너": [
+                      {"nickname": "정디자인", "cost": 4500000}
+                    ]
+                  }
+                }
+
+                주의사항:
+                - serviceSummary: 서비스 개요, 주요 기능, 단계별 계획을 마크다운 형식으로 작성
+                - estimatedDays: 프로젝트 완료까지 예상 일수 (최소 30일, 최대 180일)
+                - roleCosts: 각 역할별 1인당 **월 비용** (원 단위, 숫자만)
+                - partnerRecommendations: 각 역할별 추천 파트너 3-10명, 경험과 적합도에 따라 비용 차등 (월 비용의 70%%~150%%)
+                - JSON 형식만 출력하고 다른 텍스트는 포함하지 마세요
+                """.formatted(
+                startDate.format(END_DATE_FORMATTER),
+                description,
+                requirement,
+                roles,
+                candidateInfo.toString()
+        );
+
+        try {
+            String result = geminiService.generateTextSafe(prompt, "{}");
+            return parseProjectEstimateResult(result, startDate, recruitments);
+        } catch (Exception e) {
+            log.error("Gemini 통합 견적 생성 실패: {}", e.getMessage(), e);
+            return createFallbackEstimateResult(startDate, recruitments);
+        }
+    }
+
+    private ProjectEstimateResult parseProjectEstimateResult(
+            String jsonResult, LocalDate startDate, List<RecruitmentInfo> recruitments) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(jsonResult);
+
+            // 1. serviceSummary
+            String serviceSummary = root.has("serviceSummary")
+                    ? root.get("serviceSummary").asText()
+                    : DEFAULT_SERVICE_SUMMARY_TEMPLATE;
+
+            // 2. estimatedDays
+            int days = root.has("estimatedDays") ? root.get("estimatedDays").asInt() : 90;
+            if (days < 30) days = 30;
+            if (days > 180) days = 180;
+            LocalDate endDate = startDate.plusDays(days);
+
+            // 3. roleCosts
+            java.util.Map<Role, Long> roleCosts = new java.util.HashMap<>();
+            if (root.has("roleCosts")) {
+                JsonNode costsNode = root.get("roleCosts");
+                for (RecruitmentInfo info : recruitments) {
+                    String roleKey = info.role.getValue();
+                    if (costsNode.has(roleKey)) {
+                        roleCosts.put(info.role, costsNode.get(roleKey).asLong());
+                    }
+                }
+            }
+
+            // 4. partnerRecommendations
+            java.util.Map<Role, List<CreateProjectResponse.PartnerResponse>> recommendations = new java.util.HashMap<>();
+            if (root.has("partnerRecommendations")) {
+                JsonNode recsNode = root.get("partnerRecommendations");
+                for (RecruitmentInfo info : recruitments) {
+                    String roleKey = info.role.getValue();
+                    if (recsNode.has(roleKey) && recsNode.get(roleKey).isArray()) {
+                        List<CreateProjectResponse.PartnerResponse> partners = new ArrayList<>();
+                        for (JsonNode partnerNode : recsNode.get(roleKey)) {
+                            String nickname = partnerNode.get("nickname").asText();
+                            long cost = partnerNode.get("cost").asLong();
+
+                            info.candidates.stream()
+                                    .filter(m -> m.getNickname().equals(nickname))
+                                    .findFirst()
+                                    .ifPresent(m -> partners.add(
+                                            CreateProjectResponse.PartnerResponse.of(m, cost)));
+                        }
+                        recommendations.put(info.role, partners);
+                    }
+                }
+            }
+
+            return new ProjectEstimateResult(serviceSummary, endDate, roleCosts, recommendations);
+        } catch (Exception e) {
+            log.warn("Gemini 응답 파싱 실패, fallback 사용: {}", e.getMessage());
+            return createFallbackEstimateResult(startDate, recruitments);
+        }
+    }
+
+    private ProjectEstimateResult createFallbackEstimateResult(
+            LocalDate startDate, List<RecruitmentInfo> recruitments) {
+        LocalDate endDate = startDate.plusDays(90);
+        java.util.Map<Role, Long> roleCosts = new java.util.HashMap<>();
+        java.util.Map<Role, List<CreateProjectResponse.PartnerResponse>> recommendations = new java.util.HashMap<>();
+
+        for (RecruitmentInfo info : recruitments) {
+            // 기본 월 비용
+            long defaultMonthlyCost = switch (info.role) {
+                case PM -> 3000000L;
+                case DEV -> 5000000L;
+                case DES -> 4000000L;
+                case MAR -> 3500000L;
+            };
+            roleCosts.put(info.role, defaultMonthlyCost);
+
+            // 경험 많은 순으로 파트너 추천
+            List<CreateProjectResponse.PartnerResponse> partners = info.candidates.stream()
+                    .sorted((a, b) -> b.getProjectCount().getCount()
+                            .compareTo(a.getProjectCount().getCount()))
+                    .limit(10)
+                    .map(m -> {
+                        int count = m.getProjectCount().getCount();
+                        double multiplier = 0.7 + (count * 0.1);
+                        if (multiplier > 1.5) multiplier = 1.5;
+                        long cost = (long) (defaultMonthlyCost * multiplier);
+                        return CreateProjectResponse.PartnerResponse.of(m, cost);
+                    })
+                    .toList();
+            recommendations.put(info.role, partners);
+        }
+
+        return new ProjectEstimateResult(
+                DEFAULT_SERVICE_SUMMARY_TEMPLATE,
+                endDate,
+                roleCosts,
+                recommendations);
+    }
+
     private String generateServiceSummary(String description, String requirement) {
         String prompt = """
                 당신은 IT 프로젝트 전문 PM입니다.
@@ -694,6 +867,22 @@ public class ProjectService {
             this.role = role;
             this.count = count;
             this.candidates = candidates;
+        }
+    }
+
+    private static class ProjectEstimateResult {
+        final String serviceSummary;
+        final LocalDate endDate;
+        final java.util.Map<Role, Long> roleCosts;  // 역할별 월 비용
+        final java.util.Map<Role, List<CreateProjectResponse.PartnerResponse>> partnerRecommendations;
+
+        ProjectEstimateResult(String serviceSummary, LocalDate endDate,
+                            java.util.Map<Role, Long> roleCosts,
+                            java.util.Map<Role, List<CreateProjectResponse.PartnerResponse>> partnerRecommendations) {
+            this.serviceSummary = serviceSummary;
+            this.endDate = endDate;
+            this.roleCosts = roleCosts;
+            this.partnerRecommendations = partnerRecommendations;
         }
     }
 
