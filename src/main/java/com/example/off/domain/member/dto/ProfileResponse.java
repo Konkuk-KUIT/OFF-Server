@@ -48,20 +48,4 @@ public class ProfileResponse {
                 member.getSelfIntroduction()
         );
     }
-
-    //Todo: 삭제
-//    @Getter
-//    @AllArgsConstructor
-//    @NoArgsConstructor
-//    public static class PortfolioResponse {
-//        private String description;
-//        private String link;
-//
-//        public static PortfolioResponse from(Portfolio portfolio){
-//            return new PortfolioResponse(
-//                    portfolio.getDescription(),
-//                    portfolio.getLink()
-//            );
-//        }
-//    }
 }

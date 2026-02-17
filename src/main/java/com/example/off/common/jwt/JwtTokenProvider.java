@@ -1,9 +1,10 @@
-package com.example.off.jwt;
+package com.example.off.common.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.stereotype.Component;
@@ -16,8 +17,8 @@ import java.util.Date;
 public class JwtTokenProvider {
 
     @Value("${jwt.secret}")
+    @Getter
     private String secret;
-
 
     //expire 시간 설정
     @Value("${jwt.expire-ms}")

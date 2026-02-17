@@ -6,7 +6,7 @@ import com.example.off.domain.member.Member;
 import com.example.off.domain.member.Portfolio;
 import com.example.off.domain.member.dto.*;
 import com.example.off.domain.member.repository.MemberRepository;
-import com.example.off.jwt.JwtTokenProvider;
+import com.example.off.common.jwt.JwtTokenProvider;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;

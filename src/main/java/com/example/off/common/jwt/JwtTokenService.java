@@ -1,6 +1,7 @@
-package com.example.off.common.jwt.service;
+package com.example.off.common.jwt;
 
 import com.example.off.common.exception.OffException;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +18,8 @@ import static com.example.off.common.response.ResponseCode.INVALID_TOKEN;
 @Slf4j
 @Service
 public class JwtTokenService {
-
-    // 보통 설정파일(@Value)에서 가져오거나 상수로 정의되어 있을 거예요.
-    //Todo: secret 주입 수정
-    private final String secretKeyString = "여기에_엄청_긴_비밀키가_들어있을_거예요_최소_32자_이상";
+    private static JwtTokenProvider jwtTokenProvider;
+    private final String secretKeyString = jwtTokenProvider.getSecret();
 
     /**
      * 토큰에서 MemberId(Long) 추출하기
