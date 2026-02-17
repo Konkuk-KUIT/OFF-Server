@@ -57,5 +57,5 @@ public class SignupRequest {
     @Size(max = SELF_INTRO_MAX_LENGTH, message = "자기소개는 최대 1000자까지 가능합니다.")
     private String selfIntroduction;
 
-    private List<PortfolioRequest> portfolioList;
+    private List<PortfolioDto> portfolioList;
 }

@@ -15,7 +15,7 @@ public record UpdateProfileRequest(
         String profileImage,  // 프로필 이미지 URL
 
         ProjectCountType projectCount,
-        List<PortfolioRequest> portfolioList,
+        List<PortfolioDto> portfolioList,
 
         @Size(max = SELF_INTRO_MAX_LENGTH)
         String selfIntroduction
