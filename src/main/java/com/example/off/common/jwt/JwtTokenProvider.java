@@ -56,6 +56,10 @@ public class JwtTokenProvider {
                 .parseSignedClaims(token)
                 .getPayload();
     }
+
+    public Long getMemberIdFromToken(String token){
+        return Long.parseLong(parseToken(token).getSubject());
+    }
 }
 
 
