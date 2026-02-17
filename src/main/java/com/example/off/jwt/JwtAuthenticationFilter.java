@@ -6,8 +6,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.Set;
 
 public class JwtAuthenticationFilter implements Filter {
+
+    private static final Set<String> WHITELIST = Set.of(
+            "/members/login",
+            "/members/signup"
+    );
 
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -23,6 +29,13 @@ public class JwtAuthenticationFilter implements Filter {
 
         // CORS preflight 요청(OPTIONS)은 JWT 검증 건너뛰기
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        // 로그인/회원가입은 JWT 검증 건너뛰기
+        String requestURI = request.getRequestURI();
+        if (WHITELIST.contains(requestURI)) {
             chain.doFilter(request, response);
             return;
         }
