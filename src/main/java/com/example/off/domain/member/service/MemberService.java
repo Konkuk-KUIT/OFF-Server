@@ -79,17 +79,17 @@ public class MemberService {
             //기존 포폴 모두 삭제 후 새로 생성, 저장
             member.getPortfolios().clear();
 
-            for (PortfolioRequest pr : updateReq.portfolioList()) {
+            for (PortfolioDto pr : updateReq.portfolioList()) {
                 //des, link 모두 빈 문자열일 경우 저장하지 않음
-                String description = pr.description() == null ? "" : pr.description();
-                String link = pr.link() == null ? "" : pr.link();
+                String description = pr.getDescription() == null ? "" : pr.getDescription();
+                String link = pr.getLink() == null ? "" : pr.getLink();
                 if (description.isBlank() && link.isBlank()) {
                     continue;
                 }
 
                 Portfolio portfolio = Portfolio.of(
-                        pr.description(),
-                        pr.link()
+                        pr.getDescription(),
+                        pr.getLink()
                 );
                 member.addPortfolio(portfolio);
             }

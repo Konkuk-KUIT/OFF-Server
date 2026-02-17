@@ -1,4 +1,4 @@
-package com.example.off.jwt;
+package com.example.off.common.jwt;
 
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.*;

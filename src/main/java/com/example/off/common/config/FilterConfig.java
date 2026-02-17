@@ -1,7 +1,7 @@
-package com.example.off.config;
+package com.example.off.common.config;
 
-import com.example.off.jwt.JwtAuthenticationFilter;
-import com.example.off.jwt.JwtTokenProvider;
+import com.example.off.common.jwt.JwtAuthenticationFilter;
+import com.example.off.common.jwt.JwtTokenProvider;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class FilterConfig {
 
-    //Todo: config 및 jwtProvider dir 이동필요
     @Bean
     public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilter(
             JwtTokenProvider jwtTokenProvider

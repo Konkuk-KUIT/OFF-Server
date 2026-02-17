@@ -23,17 +23,17 @@ public class ProfileResponse {
 
     //수정하기 메타 데이터
     private ProjectCountType projectCount;
-    private List<PortfolioResponse> portfolioList;
+    private List<PortfolioDto> portfolioList;
     private String selfIntroduction;
 
 
     public static ProfileResponse of(Member member, String projectName){
         //List<Portfolio> -> List<PortfolioResponse> 로 변환
-        List<PortfolioResponse> portfolioResponses =
+        List<PortfolioDto> portfolioResponses =
                 member.getPortfolios() == null
                         ? List.of()
                         : member.getPortfolios().stream()
-                        .map(PortfolioResponse::from)
+                        .map(PortfolioDto::from)
                         .toList();
 
         return new ProfileResponse(
@@ -47,20 +47,5 @@ public class ProfileResponse {
                 portfolioResponses,
                 member.getSelfIntroduction()
         );
-    }
-
-    @Getter
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class PortfolioResponse {
-        private String description;
-        private String link;
-
-        public static PortfolioResponse from(Portfolio portfolio){
-            return new PortfolioResponse(
-                    portfolio.getDescription(),
-                    portfolio.getLink()
-            );
-        }
     }
 }
