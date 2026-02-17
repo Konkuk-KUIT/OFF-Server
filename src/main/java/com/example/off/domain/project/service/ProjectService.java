@@ -555,8 +555,24 @@ public class ProjectService {
     private ProjectEstimateResult parseProjectEstimateResult(
             String jsonResult, LocalDate startDate, List<RecruitmentInfo> recruitments) {
         try {
+            // 마크다운 코드 블록 제거 (Gemini가 ```json ... ``` 형식으로 반환하는 경우)
+            String cleanedJson = jsonResult.trim();
+            if (cleanedJson.startsWith("```")) {
+                // 첫 번째 줄 제거 (```json 또는 ```)
+                int firstNewline = cleanedJson.indexOf('\n');
+                if (firstNewline != -1) {
+                    cleanedJson = cleanedJson.substring(firstNewline + 1);
+                }
+                // 마지막 줄 제거 (```)
+                int lastBacktick = cleanedJson.lastIndexOf("```");
+                if (lastBacktick != -1) {
+                    cleanedJson = cleanedJson.substring(0, lastBacktick);
+                }
+                cleanedJson = cleanedJson.trim();
+            }
+
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(jsonResult);
+            JsonNode root = mapper.readTree(cleanedJson);
 
             // 1. serviceSummary
             String serviceSummary = root.has("serviceSummary")
