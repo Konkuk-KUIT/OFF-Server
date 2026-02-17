@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class FilterConfig {
 
-    //Todo: config 및 jwtProvider dir 이동필요
     @Bean
     public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilter(
             JwtTokenProvider jwtTokenProvider
