@@ -28,15 +28,19 @@ public class TaskService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new OffException(ResponseCode.PROJECT_NOT_FOUND));
 
-        validateProjectAccess(memberId, project);
+        validateProjectAccess(memberId, projectId);
+
+        // 담당자가 해당 프로젝트에 속하는지 검증
+        Long assigneeProjectId = projectMemberRepository.findProjectIdById(request.getProjectMemberId());
+        if (assigneeProjectId == null) {
+            throw new OffException(ResponseCode.MEMBER_NOT_FOUND);
+        }
+        if (!assigneeProjectId.equals(projectId)) {
+            throw new OffException(ResponseCode.UNAUTHORIZED_ACCESS);
+        }
 
         ProjectMember assignee = projectMemberRepository.findById(request.getProjectMemberId())
                 .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
-
-        // 담당자가 해당 프로젝트에 속하는지 검증
-        if (!assignee.getProject().getId().equals(projectId)) {
-            throw new OffException(ResponseCode.UNAUTHORIZED_ACCESS);
-        }
 
         Task task = Task.of(request.getName(), request.getDescription(), project, assignee);
         taskRepository.save(task);
@@ -57,15 +61,20 @@ public class TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new OffException(ResponseCode.TASK_NOT_FOUND));
 
-        validateProjectAccess(memberId, task.getProject());
+        Long projectId = taskRepository.findProjectIdById(taskId);
+        validateProjectAccess(memberId, projectId);
+
+        // 담당자가 해당 프로젝트에 속하는지 검증
+        Long assigneeProjectId = projectMemberRepository.findProjectIdById(request.getProjectMemberId());
+        if (assigneeProjectId == null) {
+            throw new OffException(ResponseCode.MEMBER_NOT_FOUND);
+        }
+        if (!assigneeProjectId.equals(projectId)) {
+            throw new OffException(ResponseCode.UNAUTHORIZED_ACCESS);
+        }
 
         ProjectMember assignee = projectMemberRepository.findById(request.getProjectMemberId())
                 .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
-
-        // 담당자가 해당 프로젝트에 속하는지 검증
-        if (!assignee.getProject().getId().equals(task.getProject().getId())) {
-            throw new OffException(ResponseCode.UNAUTHORIZED_ACCESS);
-        }
 
         task.update(request.getName(), request.getDescription(), assignee);
 
@@ -110,7 +119,8 @@ public class TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new OffException(ResponseCode.TASK_NOT_FOUND));
 
-        validateProjectAccess(memberId, task.getProject());
+        Long projectId = taskRepository.findProjectIdById(taskId);
+        validateProjectAccess(memberId, projectId);
 
         taskRepository.delete(task);
     }
@@ -120,7 +130,8 @@ public class TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new OffException(ResponseCode.TASK_NOT_FOUND));
 
-        validateProjectAccess(memberId, task.getProject());
+        Long projectId = taskRepository.findProjectIdById(taskId);
+        validateProjectAccess(memberId, projectId);
 
         ToDo toDo = toDoRepository.findById(toDoId)
                 .orElseThrow(() -> new OffException(ResponseCode.TODO_NOT_FOUND));
@@ -138,10 +149,14 @@ public class TaskService {
         return (int) (done * 100 / task.getToDoList().size());
     }
 
-    private void validateProjectAccess(Long memberId, Project project) {
-        if (project.getCreator().getId().equals(memberId)) return;
-        boolean isMember = project.getProjectMembers().stream()
-                .anyMatch(pm -> pm.getMember().getId().equals(memberId));
+    private void validateProjectAccess(Long memberId, Long projectId) {
+        Long creatorId = projectRepository.findCreatorIdById(projectId);
+        if (creatorId == null) {
+            throw new OffException(ResponseCode.PROJECT_NOT_FOUND);
+        }
+        if (creatorId.equals(memberId)) return;
+
+        boolean isMember = projectMemberRepository.existsByProject_IdAndMember_Id(projectId, memberId);
         if (!isMember) throw new OffException(ResponseCode.UNAUTHORIZED_ACCESS);
     }
 }
