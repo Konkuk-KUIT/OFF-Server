@@ -38,7 +38,7 @@ public class ProjectController {
     @PostMapping("/confirm")
     @CustomExceptionDescription(SwaggerResponseDescription.CONFIRM_PROJECT)
     public BaseResponse<ConfirmProjectResponse> confirmProject(
-            @RequestBody ConfirmProjectRequest request,
+            @Valid @RequestBody ConfirmProjectRequest request,
             HttpServletRequest httpServletRequest
     ) {
         Long memberId = getMemberId(httpServletRequest);
