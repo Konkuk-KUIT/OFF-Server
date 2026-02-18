@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, Long> {
     @Query("SELECT crm FROM ChatRoomMember crm " +
@@ -24,7 +23,7 @@ public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, 
             "JOIN FETCH crm.member " +
             "JOIN FETCH crm.chatRoom cr " +
             "WHERE cr.id = :roomId AND crm.member.id != :myId")
-    Optional<ChatRoomMember> findOpponentByRoomIdAndMyId(
+    List<ChatRoomMember> findOpponentByRoomIdAndMyId(
             @Param("roomId") Long roomId,
             @Param("myId") Long myId
     );
