@@ -21,6 +21,14 @@ public class PayController {
     private final PayLogService payLogService;
     private final PayFacade payFacade;
 
+    @org.springframework.beans.factory.annotation.Value("${payment.client.key}")
+    private String clientKey;
+
+    @org.springframework.web.bind.annotation.GetMapping("/payments/client-key")
+    public BaseResponse<String> getClientKey() {
+        return BaseResponse.ok(clientKey);
+    }
+
     @PostMapping("/payments/prepare")
     public BaseResponse<PreparePayResponse> prepare(
             @Valid @RequestBody PreparePayRequest req,
