@@ -181,6 +181,13 @@ public class PartnerMatchingService {
         return PartnerProfileResponse.of(partner);
     }
 
+    @Transactional(readOnly = true)
+    public ApplicationDetailResponse getApplicationDetail(Long applicationId) {
+        PartnerApplication application = partnerApplicationRepository.findById(applicationId)
+                .orElseThrow(() -> new OffException(ResponseCode.APPLICATION_NOT_FOUND));
+        return ApplicationDetailResponse.from(application);
+    }
+
     private Role parseRole(String roleStr) {
         return switch (roleStr.toLowerCase()) {
             case "planner" -> Role.PM;

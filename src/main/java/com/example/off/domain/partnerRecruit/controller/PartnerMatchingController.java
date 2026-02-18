@@ -64,6 +64,15 @@ public class PartnerMatchingController {
         return BaseResponse.ok(partnerMatchingService.getPartnerProfile(partnerId));
     }
 
+    @Operation(summary = "지원 정보 조회", description = "지원 상세 정보를 조회합니다. (프로젝트 정보 포함)")
+    @GetMapping("/applications/{applicationId}")
+    @CustomExceptionDescription(SwaggerResponseDescription.GET_PARTNER_PROFILE)
+    public BaseResponse<ApplicationDetailResponse> getApplicationDetail(
+            @PathVariable Long applicationId
+    ) {
+        return BaseResponse.ok(partnerMatchingService.getApplicationDetail(applicationId));
+    }
+
     private Long getMemberId(HttpServletRequest req) {
         Object attr = req.getAttribute("memberId");
         if (attr instanceof Long id) return id;
