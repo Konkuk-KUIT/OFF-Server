@@ -2,6 +2,8 @@ package com.example.off.domain.notification.dto;
 
 import com.example.off.domain.notification.Notification;
 
+import java.time.format.DateTimeFormatter;
+
 public record NotificationResponse(
         Long notificationId,
         String title,
@@ -11,6 +13,8 @@ public record NotificationResponse(
         String createdAt,
         boolean isRead
 ) {
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     public static NotificationResponse from(Notification notification) {
         return new NotificationResponse(
                 notification.getId(),
@@ -18,7 +22,7 @@ public record NotificationResponse(
                 notification.getNotificationType().name(),
                 notification.getContent(),
                 notification.getUrl(),
-                notification.getCreatedAt().toString(),
+                notification.getCreatedAt().format(FORMATTER),
                 notification.getIsRead()
         );
     }
