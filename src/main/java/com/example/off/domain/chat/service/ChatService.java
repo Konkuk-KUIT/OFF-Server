@@ -36,25 +36,44 @@ public class ChatService {
     private final SimpMessageSendingOperations messagingTemplate;
 
     public ChatRoomListResponse getChatRoomList(Long memberId, ChatType chatType) {
-        List<ChatRoomMember> myParticipations = chatRoomMemberRepository.findAllByMember_IdAndChatRoom_ChatType(memberId, chatType);
-        List<ChatRoomListResponse.ChatRoomResponse> responses = myParticipations.stream()
-                .map(participation -> {
-                    ChatRoom room = participation.getChatRoom();
-                    Project project = room.getProject();
+        try {
+            log.info("Getting chat room list for memberId={}, chatType={}", memberId, chatType);
 
-                    ChatRoomMember opponent = chatRoomMemberRepository.findOpponentByRoomIdAndMyId(room.getId(), memberId)
-                            .orElseThrow(() -> new OffException(ResponseCode.OPPONENT_NOT_FOUND));
+            List<ChatRoomMember> myParticipations = chatRoomMemberRepository.findAllByMember_IdAndChatRoom_ChatType(memberId, chatType);
+            log.info("Found {} participations", myParticipations.size());
 
-                    Message lastMessage = messageRepository.findFirstByChatRoom_IdOrderByCreatedAtDesc(room.getId())
-                            .orElse(null);
+            List<ChatRoomListResponse.ChatRoomResponse> responses = myParticipations.stream()
+                    .map(participation -> {
+                        try {
+                            ChatRoom room = participation.getChatRoom();
+                            log.info("Processing room: {}", room.getId());
 
-                    int unReadCount = messageRepository.countUnreadMessages(room.getId(), memberId);
+                            Project project = room.getProject();
+                            log.info("Room {} - project: {}", room.getId(), project != null ? project.getId() : "null");
 
-                    return ChatRoomListResponse.ChatRoomResponse.of(room, opponent, project, lastMessage, unReadCount);
-                })
-                .toList();
+                            ChatRoomMember opponent = chatRoomMemberRepository.findOpponentByRoomIdAndMyId(room.getId(), memberId)
+                                    .orElseThrow(() -> new OffException(ResponseCode.OPPONENT_NOT_FOUND));
+                            log.info("Room {} - opponent found: {}", room.getId(), opponent.getMember().getId());
 
-        return new ChatRoomListResponse(responses);
+                            Message lastMessage = messageRepository.findFirstByChatRoom_IdOrderByCreatedAtDesc(room.getId())
+                                    .orElse(null);
+
+                            int unReadCount = messageRepository.countUnreadMessages(room.getId(), memberId);
+
+                            return ChatRoomListResponse.ChatRoomResponse.of(room, opponent, project, lastMessage, unReadCount);
+                        } catch (Exception e) {
+                            log.error("Error processing chatroom: ", e);
+                            throw e;
+                        }
+                    })
+                    .toList();
+
+            log.info("Successfully created {} responses", responses.size());
+            return new ChatRoomListResponse(responses);
+        } catch (Exception e) {
+            log.error("Error in getChatRoomList: ", e);
+            throw e;
+        }
     }
 
     @Transactional
