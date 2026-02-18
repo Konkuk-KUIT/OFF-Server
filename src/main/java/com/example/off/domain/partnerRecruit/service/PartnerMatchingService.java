@@ -182,9 +182,16 @@ public class PartnerMatchingService {
     }
 
     @Transactional(readOnly = true)
-    public ApplicationDetailResponse getApplicationDetail(Long applicationId) {
+    public ApplicationDetailResponse getApplicationDetail(Long memberId, Long applicationId) {
         PartnerApplication application = partnerApplicationRepository.findById(applicationId)
                 .orElseThrow(() -> new OffException(ResponseCode.APPLICATION_NOT_FOUND));
+
+        Long creatorId = application.getPartnerRecruit().getProject().getCreator().getId();
+        Long applicantId = application.getMember().getId();
+        if (!memberId.equals(creatorId) && !memberId.equals(applicantId)) {
+            throw new OffException(ResponseCode.UNAUTHORIZED_ACCESS);
+        }
+
         return ApplicationDetailResponse.from(application);
     }
 

@@ -1,6 +1,9 @@
 package com.example.off.domain.pay.dto;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 public record PreparePayRequest(
-        long applicationId
+        @NotNull @Positive Long applicationId
 ) {
 }
