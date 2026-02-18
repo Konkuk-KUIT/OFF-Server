@@ -1,8 +1,6 @@
 package com.example.off.domain.chat.dto;
 
 import com.example.off.domain.chat.Message;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -11,9 +9,7 @@ import java.time.LocalDateTime;
 public class SendMessageResponse {
     private Long id;
     private String content;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
-    @JsonProperty("isMine")
     private boolean isMine;
 
     public SendMessageResponse(Long id, String content, LocalDateTime createdAt, boolean isMine) {

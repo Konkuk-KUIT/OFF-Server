@@ -1,7 +1,6 @@
 package com.example.off.domain.project.dto;
 
 import com.example.off.domain.role.Role;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -23,7 +22,6 @@ public class HomeResponse {
         private String endDate;
         private long dDay;
         private int progressPercent;
-        @JsonProperty("isRecruiting")
         private boolean isRecruiting;  // 모집 중인지 여부
         private List<RecruitInfo> recruitList;  // 모집 중인 역할 목록
     }

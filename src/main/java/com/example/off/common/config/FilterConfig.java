@@ -29,8 +29,7 @@ public class FilterConfig {
                 "/notifications", "/notifications/*",
                 "/home",
                 "/partners/*",
-                "/invitations/*", "/invitations/*/*",
-                "/applications/*"
+                "/invitations/*", "/invitations/*/*"
         );
 
         // 다른 필터들보다 먼저

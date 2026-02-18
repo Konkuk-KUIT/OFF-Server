@@ -42,12 +42,6 @@ public class PayLogService {
         PartnerApplication application = partnerApplicationRepository.findById(req.applicationId())
                 .orElseThrow(() -> new OffException(ResponseCode.APPLICATION_NOT_FOUND));
 
-        // 결제자가 프로젝트 creator인지 검증
-        Project project = application.getPartnerRecruit().getProject();
-        if (!project.getCreator().getId().equals(memberId)) {
-            throw new OffException(ResponseCode.UNAUTHORIZED_ACCESS);
-        }
-
         // 초대(isFromProject=true)인 경우: 파트너가 ACCEPT해야 결제 가능
         // 지원(isFromProject=false)인 경우: 기획자가 바로 결제 가능 (WAITING 상태)
         if (application.getIsFromProject() && application.getApplicationStatus() != ApplicationStatus.ACCEPT) {
@@ -115,9 +109,6 @@ public class PayLogService {
         Project project = recruit.getProject();
         Member payee = application.getMember();
 
-        if (projectMemberRepository.existsByProjectAndMember(project, payee)) {
-            throw new OffException(ResponseCode.ALREADY_PROJECT_MEMBER);
-        }
         ProjectMember projectMember = ProjectMember.of(project, payee);
         projectMemberRepository.save(projectMember);
 
