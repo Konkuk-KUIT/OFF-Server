@@ -1,21 +1,21 @@
 -- =====================================================
--- 초기화: 모든 테이블 데이터 삭제 (FK 제약조건이 있으므로 순서 중요 또는 Disable FK Check)
+-- 초기화: 모든 테이블 데이터 삭제 (PostgreSQL)
 -- =====================================================
-SET FOREIGN_KEY_CHECKS = 0;
-TRUNCATE TABLE pay_log;
-TRUNCATE TABLE notification;
-TRUNCATE TABLE message;
-TRUNCATE TABLE chat_room_member;
-TRUNCATE TABLE chat_room;
-TRUNCATE TABLE to_do;
-TRUNCATE TABLE task;
-TRUNCATE TABLE partner_application;
-TRUNCATE TABLE partner_recruit;
-TRUNCATE TABLE project_member;
-TRUNCATE TABLE project;
-TRUNCATE TABLE portfolio;
-TRUNCATE TABLE member;
-SET FOREIGN_KEY_CHECKS = 1;
+TRUNCATE TABLE 
+    pay_log, 
+    notification, 
+    message, 
+    chat_room_member, 
+    chat_room, 
+    to_do, 
+    task, 
+    partner_application, 
+    partner_recruit, 
+    project_member, 
+    project, 
+    portfolio, 
+    member 
+RESTART IDENTITY CASCADE;
 
 -- =====================================================
 -- 시드 데이터: 모든 기능 테스트용 더미 데이터
