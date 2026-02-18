@@ -13,10 +13,8 @@ import java.util.List;
 public class ConfirmProjectRequest {
     @NotBlank
     private String name;
-    @NotBlank
     private String description;
     private Long projectTypeId = 1L;  // 앱개발로 고정 (1L = APP)
-    @NotBlank
     private String requirement;
     private String serviceSummary;
     @NotBlank

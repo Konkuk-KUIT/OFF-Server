@@ -409,8 +409,10 @@ public class ProjectService {
 
         project.complete();
 
-        // 1. projectCount 증가 - 모든 projectMember (creator도 포함되어 있음)
+        // 1. projectCount 증가 - creator와 모든 projectMember
         Member creator = project.getCreator();
+        creator.incrementProjectCount();
+
         for (ProjectMember pm : project.getProjectMembers()) {
             pm.getMember().incrementProjectCount();
         }
