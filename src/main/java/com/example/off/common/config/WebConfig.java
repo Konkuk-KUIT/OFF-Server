@@ -11,10 +11,11 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")  // 모든 경로에 대해
                 .allowedOrigins(
-                        "http://localhost:5173",      // 로컬 개발 (Vite)
-                        "http://localhost:3000",      // 로컬 개발 (React)
-                        "http://offf.kro.kr",         // 프로덕션
-                        "https://offf.kro.kr"         // 프로덕션 HTTPS
+                        "http://localhost:5173",              // 로컬 개발 (Vite)
+                        "http://localhost:3000",              // 로컬 개발 (React)
+                        "http://offf.kro.kr",                 // 프로덕션
+                        "https://offf.kro.kr",                // 프로덕션 HTTPS
+                        "https://off-web-eosin.vercel.app"   // Vercel 배포
                 )
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")

@@ -18,7 +18,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("*").withSockJS(); // 임시로 모든 도메인 허용
+                .setAllowedOriginPatterns(
+                        "http://localhost:*",
+                        "http://offf.kro.kr",
+                        "https://offf.kro.kr",
+                        "https://off-web-eosin.vercel.app"
+                ).withSockJS();
     }
 
     @Override
