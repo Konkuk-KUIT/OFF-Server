@@ -42,8 +42,9 @@ public class ChatService {
                     ChatRoom room = participation.getChatRoom();
                     Project project = room.getProject();
 
-                    ChatRoomMember opponent = chatRoomMemberRepository.findOpponentByRoomIdAndMyId(room.getId(), memberId)
-                            .orElseThrow(() -> new OffException(ResponseCode.OPPONENT_NOT_FOUND));
+                    List<ChatRoomMember> opponents = chatRoomMemberRepository.findOpponentByRoomIdAndMyId(room.getId(), memberId);
+                    if (opponents.isEmpty()) throw new OffException(ResponseCode.OPPONENT_NOT_FOUND);
+                    ChatRoomMember opponent = opponents.get(0);
 
                     Message lastMessage = messageRepository.findFirstByChatRoom_IdOrderByCreatedAtDesc(room.getId())
                             .orElse(null);
@@ -80,8 +81,9 @@ public class ChatService {
             messages = messages.subList(0, size);
         }
 
-        ChatRoomMember opponentMember = chatRoomMemberRepository.findOpponentByRoomIdAndMyId(roomId, memberId)
-                .orElseThrow(() -> new OffException(ResponseCode.OPPONENT_NOT_FOUND));
+        List<ChatRoomMember> opponentMembers = chatRoomMemberRepository.findOpponentByRoomIdAndMyId(roomId, memberId);
+        if (opponentMembers.isEmpty()) throw new OffException(ResponseCode.OPPONENT_NOT_FOUND);
+        ChatRoomMember opponentMember = opponentMembers.get(0);
 
         List<ChatMessageDetailResponse.ChatMessageResponse> messageList = messages.stream()
                 .map(m -> ChatMessageDetailResponse
@@ -104,8 +106,9 @@ public class ChatService {
 
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new OffException(ResponseCode.MEMBER_NOT_FOUND));
-        ChatRoomMember opponent = chatRoomMemberRepository.findOpponentByRoomIdAndMyId(room.getId(), memberId)
-                .orElseThrow(() -> new OffException(ResponseCode.OPPONENT_NOT_FOUND));
+        List<ChatRoomMember> opponents = chatRoomMemberRepository.findOpponentByRoomIdAndMyId(room.getId(), memberId);
+        if (opponents.isEmpty()) throw new OffException(ResponseCode.OPPONENT_NOT_FOUND);
+        ChatRoomMember opponent = opponents.get(0);
 
         Message message = new Message(content, false, member, room);
         Message savedMessage = messageRepository.save(message);
