@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import static com.example.off.domain.member.Member.NICKNAME_MAX_LENGTH;
 import static com.example.off.domain.member.Member.SELF_INTRO_MAX_LENGTH;
@@ -32,7 +31,7 @@ public class MemberService {
         Member member = findMember(memberId); //회원 찾기
         //현재 시점을 기준으로 진행중인 project 찾기
         LocalDate now = LocalDate.now();
-        Optional<ProjectMember> workingProjectList = projectMemberRepository.findWorkingProject(memberId, now);
+        List<ProjectMember> workingProjectList = projectMemberRepository.findWorkingProject(memberId, now);
         if (workingProjectList.isEmpty()) //진행 중인 프로젝트 없음.
             return ProfileResponse.of(member, null);
 
@@ -41,8 +40,8 @@ public class MemberService {
             member.startWorking();
         }
 
-        //프로젝트를 진행 중인 경우
-        String workingProjectName = workingProjectList.get().getProject().getName();
+        //프로젝트를 진행 중인 경우 (여러 개면 종료일이 가장 빠른 것 사용)
+        String workingProjectName = workingProjectList.get(0).getProject().getName();
         return ProfileResponse.of(member, workingProjectName);
     }
 

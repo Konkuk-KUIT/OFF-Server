@@ -28,7 +28,7 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Lo
                   and pm.project.status = 'IN_PROGRESS'
                 order by pm.project.end asc
             """)
-    Optional<ProjectMember> findWorkingProject(
+    List<ProjectMember> findWorkingProject(
             @Param("memberId") Long memberId,
             @Param("now") LocalDate now);
 }
