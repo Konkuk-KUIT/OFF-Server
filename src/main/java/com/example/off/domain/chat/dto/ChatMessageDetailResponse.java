@@ -1,20 +1,25 @@
 package com.example.off.domain.chat.dto;
 
 import com.example.off.domain.chat.Message;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Getter
 public class ChatMessageDetailResponse {
     private Long id;
     private OpponentResponse opponentResponse;
     private List<ChatMessageResponse> chatMessageResponses;
     private boolean hasNext;
 
+    @Getter
     public static class ChatMessageResponse{
         private Long id;
         private String content;
         private LocalDateTime createdAt;
+        @JsonProperty("isMine")
         private boolean isMine;
 
         public ChatMessageResponse(Long id, String content, LocalDateTime createdAt, boolean isMine) {
