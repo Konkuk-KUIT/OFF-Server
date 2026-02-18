@@ -1,5 +1,6 @@
 package com.example.off.domain.task.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -7,6 +8,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ToggleToDoResponse {
     private Long toDoId;
+    @JsonProperty("isDone")
     private boolean isDone;
     private int taskProgressPercent;
 

@@ -2,6 +2,7 @@ package com.example.off.domain.project.dto;
 
 import com.example.off.domain.project.ProjectStatus;
 import com.example.off.domain.role.Role;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -49,6 +50,7 @@ public class ProjectDetailResponse {
     public static class ToDoSummary {
         private Long toDoId;
         private String content;
+        @JsonProperty("isDone")
         private boolean isDone;
     }
 

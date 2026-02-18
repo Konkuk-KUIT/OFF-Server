@@ -68,9 +68,11 @@ public class PartnerMatchingController {
     @GetMapping("/applications/{applicationId}")
     @CustomExceptionDescription(SwaggerResponseDescription.GET_PARTNER_PROFILE)
     public BaseResponse<ApplicationDetailResponse> getApplicationDetail(
-            @PathVariable Long applicationId
+            @PathVariable Long applicationId,
+            HttpServletRequest httpServletRequest
     ) {
-        return BaseResponse.ok(partnerMatchingService.getApplicationDetail(applicationId));
+        Long memberId = getMemberId(httpServletRequest);
+        return BaseResponse.ok(partnerMatchingService.getApplicationDetail(memberId, applicationId));
     }
 
     private Long getMemberId(HttpServletRequest req) {

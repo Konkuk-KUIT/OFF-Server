@@ -5,6 +5,7 @@ import com.example.off.domain.chat.ChatRoomMember;
 import com.example.off.domain.chat.ChatType;
 import com.example.off.domain.chat.Message;
 import com.example.off.domain.project.Project;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -44,6 +45,7 @@ public class ChatRoomListResponse {
         @Getter
         public static class LastMessageInfo {
             private String content;
+            @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
             private LocalDateTime createdAt;
 
             public LastMessageInfo(String content, LocalDateTime createdAt) {

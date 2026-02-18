@@ -26,7 +26,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final ProjectMemberRepository projectMemberRepository;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ProfileResponse getMyProfile(Long memberId){
         Member member = findMember(memberId); //회원 찾기
         //현재 시점을 기준으로 진행중인 project 찾기
