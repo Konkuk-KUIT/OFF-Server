@@ -17,6 +17,7 @@ import java.util.List;
 public class ChatRoomListResponse {
     List<ChatRoomResponse> chatRoomResponses;
 
+    @Getter
     public static class ChatRoomResponse{
 
         @Schema(description = "채팅방 아이디", example = "105")
@@ -27,6 +28,7 @@ public class ChatRoomListResponse {
         private LastMessageInfo lastMessageInfo;
         private int unReadCount;
 
+        @Getter
         public static class ChatProjectInfo {
             private Long id;
             private String name;
@@ -39,6 +41,7 @@ public class ChatRoomListResponse {
                 return new ChatProjectInfo(project.getId(), project.getName());
             }
         }
+        @Getter
         public static class LastMessageInfo {
             private String content;
             private LocalDateTime createdAt;
