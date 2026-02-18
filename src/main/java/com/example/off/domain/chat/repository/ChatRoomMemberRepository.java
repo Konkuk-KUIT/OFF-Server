@@ -13,15 +13,17 @@ public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, 
     @Query("SELECT crm FROM ChatRoomMember crm " +
             "JOIN FETCH crm.chatRoom cr " +
             "LEFT JOIN FETCH cr.project " +
+            "JOIN FETCH crm.member " +
             "WHERE crm.member.id = :memberId AND cr.chatType = :chatType")
     List<ChatRoomMember> findAllByMember_IdAndChatRoom_ChatType(
             @Param("memberId") Long memberId,
             @Param("chatType") ChatType chatType
     );
 
-    @Query("SELECT cp FROM ChatRoomMember cp " +
-            "JOIN FETCH cp.member " +
-            "WHERE cp.chatRoom.id = :roomId AND cp.member.id != :myId")
+    @Query("SELECT crm FROM ChatRoomMember crm " +
+            "JOIN FETCH crm.member " +
+            "JOIN FETCH crm.chatRoom cr " +
+            "WHERE cr.id = :roomId AND crm.member.id != :myId")
     Optional<ChatRoomMember> findOpponentByRoomIdAndMyId(
             @Param("roomId") Long roomId,
             @Param("myId") Long myId
