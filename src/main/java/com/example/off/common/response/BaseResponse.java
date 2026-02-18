@@ -33,6 +33,13 @@ public class BaseResponse<T> {
         this.data = null;
     }
 
+    public BaseResponse(ResponseCode responseCode, String customMessage) {
+        this.success = responseCode.isSuccess();
+        this.code = responseCode.getCode();
+        this.message = customMessage;
+        this.data = null;
+    }
+
     public static <T> BaseResponse<T> ok(T result) {
         return new BaseResponse<>(ResponseCode.SUCCESS, result);
     }

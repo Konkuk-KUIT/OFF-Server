@@ -5,8 +5,12 @@ import com.example.off.common.response.ResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -21,6 +25,21 @@ public class OffControllerAdvice {
         return ResponseEntity
                 .status(responseCode.getHttpStatus()) // 혹은 상황에 맞는 HTTP Status
                 .body(new BaseResponse<>(responseCode));
+    }
+
+    /**
+     * Validation 예외 처리 (@Valid 실패 시)
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<BaseResponse<Void>> handleValidationException(MethodArgumentNotValidException e) {
+        String errorMessage = e.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+
+        log.error("Validation Error: {}", errorMessage);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new BaseResponse<>(ResponseCode.INVALID_INPUT_VALUE, "입력값이 유효하지 않습니다. " + errorMessage));
     }
 
     /**
