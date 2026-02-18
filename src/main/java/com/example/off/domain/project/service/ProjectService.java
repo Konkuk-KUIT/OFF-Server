@@ -356,6 +356,7 @@ public class ProjectService {
                             : (int) (t.getToDoList().stream().filter(ToDo::getIsDone).count() * 100 / t.getToDoList().size());
                     return new ProjectDetailResponse.TaskSummary(
                             t.getId(), t.getName(), t.getDescription(),
+                            t.getProjectMember().getId(),
                             t.getProjectMember().getMember().getNickname(),
                             taskProgress, todos);
                 })
@@ -363,7 +364,7 @@ public class ProjectService {
 
         List<ProjectDetailResponse.MemberSummary> members = project.getProjectMembers().stream()
                 .map(pm -> new ProjectDetailResponse.MemberSummary(
-                        pm.getMember().getId(), pm.getMember().getNickname(),
+                        pm.getId(), pm.getMember().getId(), pm.getMember().getNickname(),
                         pm.getMember().getProfileImage(), pm.getRole()))
                 .toList();
 
@@ -383,7 +384,9 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new OffException(ResponseCode.PROJECT_NOT_FOUND));
 
-        if (!project.getCreator().getId().equals(memberId)) {
+        boolean isCreator = project.getCreator().getId().equals(memberId);
+        boolean isMember = projectMemberRepository.existsByProject_IdAndMember_Id(projectId, memberId);
+        if (!isCreator && !isMember) {
             throw new OffException(ResponseCode.UNAUTHORIZED_ACCESS);
         }
 

@@ -38,6 +38,7 @@ public class ProjectDetailResponse {
         private Long taskId;
         private String name;
         private String description;
+        private Long assigneeProjectMemberId;
         private String assigneeName;
         private int progressPercent;
         private List<ToDoSummary> toDoList;
@@ -54,6 +55,7 @@ public class ProjectDetailResponse {
     @Getter
     @AllArgsConstructor
     public static class MemberSummary {
+        private Long projectMemberId;
         private Long memberId;
         private String nickname;
         private String profileImage;
