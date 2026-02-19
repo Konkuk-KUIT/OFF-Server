@@ -1,7 +1,6 @@
 package com.example.off.domain.chat.dto;
 
 import com.example.off.domain.chat.Message;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
@@ -19,7 +18,6 @@ public class ChatMessageDetailResponse {
     public static class ChatMessageResponse{
         private Long id;
         private String content;
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime createdAt;
         @JsonProperty("isMine")
         private boolean isMine;
