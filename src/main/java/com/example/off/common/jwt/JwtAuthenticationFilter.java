@@ -6,8 +6,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.Set;
 
 public class JwtAuthenticationFilter implements Filter {
+
+    private static final Set<String> ALLOWED_ORIGINS = Set.of(
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "http://offf.kro.kr",
+            "https://offf.kro.kr",
+            "https://off-web-eosin.vercel.app"
+    );
 
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -30,6 +39,7 @@ public class JwtAuthenticationFilter implements Filter {
         String header = request.getHeader("Authorization");
 
         if (header == null || !header.startsWith("Bearer ")) {
+            setCorsHeaders(request, response);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write("{\"success\":false,\"code\":401,\"message\":\"토큰이 필요합니다.\"}");
@@ -49,8 +59,18 @@ public class JwtAuthenticationFilter implements Filter {
 
             chain.doFilter(request, response);
         } catch (Exception e) {
+            setCorsHeaders(request, response);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid or expired token");
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"success\":false,\"code\":401,\"message\":\"유효하지 않거나 만료된 토큰입니다.\"}");
+        }
+    }
+
+    private void setCorsHeaders(HttpServletRequest request, HttpServletResponse response) {
+        String origin = request.getHeader("Origin");
+        if (origin != null && ALLOWED_ORIGINS.contains(origin)) {
+            response.setHeader("Access-Control-Allow-Origin", origin);
+            response.setHeader("Access-Control-Allow-Credentials", "true");
         }
     }
 }
