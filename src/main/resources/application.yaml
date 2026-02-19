@@ -9,7 +9,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   sql:
     init:
-      mode: always # data.sql이 중복 실행되어도 에러 안 나게 쿼리 짰는지 확인 필수!
+      mode: never
   jpa:
     defer-datasource-initialization: true
     hibernate:
